@@ -1,0 +1,656 @@
+<style>
+:root {
+  --fr-green: #1a3a2a;
+  --fr-gold: #b8963e;
+  --fr-gold-light: #d4af6a;
+  --fr-surface: var(--color-background-secondary);
+  --fr-border: var(--color-border-tertiary);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+
+.app { display: flex; height: 600px; border: 0.5px solid var(--fr-border); border-radius: var(--border-radius-lg); overflow: hidden; }
+
+.sidebar { width: 220px; min-width: 220px; background: var(--color-background-primary); border-right: 0.5px solid var(--fr-border); display: flex; flex-direction: column; }
+.sidebar-header { padding: 16px; border-bottom: 0.5px solid var(--fr-border); }
+.brand { display: flex; align-items: center; gap: 8px; }
+.brand-logo { width: 28px; height: 28px; background: var(--fr-green); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: var(--fr-gold); letter-spacing: 0.5px; }
+.brand-name { font-size: 12px; font-weight: 500; color: var(--color-text-primary); line-height: 1.3; }
+.brand-sub { font-size: 10px; color: var(--color-text-secondary); }
+
+.nav { padding: 8px; flex: 1; overflow-y: auto; }
+.nav-section { font-size: 10px; color: var(--color-text-tertiary); padding: 8px 8px 4px; text-transform: uppercase; letter-spacing: 0.8px; }
+.nav-item { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: var(--border-radius-md); font-size: 13px; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+.nav-item:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+.nav-item.active { background: var(--fr-green); color: #e8d5a3; }
+.nav-item.active i { color: var(--fr-gold); }
+.nav-item i { font-size: 15px; }
+
+.client-list { border-top: 0.5px solid var(--fr-border); padding: 8px; overflow-y: auto; max-height: 220px; }
+.client-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: var(--border-radius-md); cursor: pointer; transition: background 0.15s; }
+.client-item:hover { background: var(--color-background-secondary); }
+.client-item.selected { background: var(--color-background-secondary); }
+.client-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 500; }
+.av-green { background: #e8f0eb; color: #1a3a2a; }
+.av-blue  { background: #e6f1fb; color: #185fa5; }
+.av-amber { background: #faeeda; color: #854f0b; }
+.av-purple{ background: #eeedfe; color: #534ab7; }
+.client-info { flex: 1; min-width: 0; }
+.client-name { font-size: 12px; font-weight: 500; color: var(--color-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.client-type { font-size: 10px; color: var(--color-text-tertiary); }
+.client-badge { font-size: 9px; padding: 2px 5px; border-radius: 4px; }
+.badge-mod  { background: #faeeda; color: #854f0b; }
+.badge-cons { background: #e6f1fb; color: #185fa5; }
+.badge-agr  { background: #faece7; color: #993c1d; }
+
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--color-background-primary); }
+.topbar { padding: 12px 20px; border-bottom: 0.5px solid var(--fr-border); display: flex; align-items: center; justify-content: space-between; }
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.page-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+.api-badge { display: flex; align-items: center; gap: 5px; font-size: 11px; padding: 3px 8px; background: #faeeda; color: #854f0b; border-radius: 20px; transition: all 0.3s; }
+.api-badge.live    { background: #eaf3de; color: #3b6d11; }
+.api-badge.error   { background: #faece7; color: #993c1d; }
+.api-badge.loading { background: #f0f0f0; color: #666; }
+.api-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.api-dot.spin { animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+.btn-icon { width: 30px; height: 30px; border: 0.5px solid var(--fr-border); border-radius: var(--border-radius-md); display: flex; align-items: center; justify-content: center; cursor: pointer; background: transparent; color: var(--color-text-secondary); transition: all 0.15s; }
+.btn-icon:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+.btn-icon.spinning i { animation: spin 1s linear infinite; }
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+.btn-pdf { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: var(--border-radius-md); background: var(--fr-gold); color: #fff; font-size: 12px; font-weight: 500; border: none; cursor: pointer; transition: opacity 0.15s; }
+.btn-pdf:hover { opacity: 0.85; }
+.btn-primary { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: var(--border-radius-md); background: var(--fr-green); color: #e8d5a3; font-size: 12px; font-weight: 500; border: none; cursor: pointer; transition: opacity 0.15s; }
+.btn-primary:hover { opacity: 0.85; }
+
+.content { flex: 1; overflow-y: auto; padding: 20px; }
+.metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.metric-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 14px; }
+.metric-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.metric-value { font-size: 20px; font-weight: 500; color: var(--color-text-primary); line-height: 1.2; }
+.metric-sub { font-size: 11px; margin-top: 3px; display: flex; align-items: center; gap: 3px; }
+.up   { color: #3b6d11; }
+.down { color: #993c1d; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.section-card { background: var(--color-background-primary); border: 0.5px solid var(--fr-border); border-radius: var(--border-radius-lg); padding: 14px 16px; }
+.section-title { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.6px; }
+
+.holdings-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.holdings-table th { text-align: left; font-size: 10px; font-weight: 500; color: var(--color-text-tertiary); padding: 0 0 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.holdings-table td { padding: 6px 0; border-top: 0.5px solid var(--fr-border); color: var(--color-text-primary); vertical-align: middle; }
+.holdings-table tr:first-child td { border-top: none; }
+.ticker-badge { font-size: 10px; font-weight: 500; padding: 2px 6px; background: var(--color-background-secondary); border-radius: 4px; }
+.type-tag { font-size: 10px; padding: 2px 5px; border-radius: 4px; }
+.tag-cedear { background: #eeedfe; color: #534ab7; }
+.tag-bono   { background: #e1f5ee; color: #0f6e56; }
+.tag-lecap  { background: #faeeda; color: #854f0b; }
+.tag-on     { background: #faece7; color: #993c1d; }
+.tag-accion { background: #e6f1fb; color: #185fa5; }
+.price-cell { transition: color 0.3s; }
+.price-cell.updating { opacity: 0.45; }
+
+.alloc-list { display: flex; flex-direction: column; gap: 8px; }
+.alloc-row { display: flex; align-items: center; gap: 8px; }
+.alloc-label { font-size: 12px; color: var(--color-text-primary); width: 90px; flex-shrink: 0; }
+.alloc-bar-bg { flex: 1; height: 6px; background: var(--fr-border); border-radius: 3px; overflow: hidden; }
+.alloc-bar-fill { height: 100%; border-radius: 3px; }
+.alloc-pct { font-size: 12px; color: var(--color-text-secondary); width: 32px; text-align: right; flex-shrink: 0; }
+
+.tab-bar { display: flex; gap: 0; border-bottom: 0.5px solid var(--fr-border); margin-bottom: 16px; }
+.tab { padding: 8px 14px; font-size: 12px; font-weight: 500; color: var(--color-text-secondary); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
+.tab.active { color: var(--fr-green); border-bottom-color: var(--fr-green); }
+.tab:hover:not(.active) { color: var(--color-text-primary); }
+
+.add-btn { width: 100%; padding: 7px; border: 0.5px dashed var(--fr-border); border-radius: var(--border-radius-md); background: transparent; font-size: 12px; color: var(--color-text-tertiary); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px; }
+.add-btn:hover { border-color: var(--fr-gold); color: var(--fr-gold); background: var(--color-background-secondary); }
+
+.status-bar { padding: 8px 20px; border-top: 0.5px solid var(--fr-border); display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--color-text-tertiary); }
+</style>
+
+<!-- ═══════════════════════════════ APP ═══════════════════════════════ -->
+<h2 class="sr-only">Monitor de carteras FR Asesoría Financiera</h2>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">FR</div>
+        <div>
+          <div class="brand-name">FR Asesoría</div>
+          <div class="brand-sub">Monitor de carteras</div>
+        </div>
+      </div>
+    </div>
+    <div class="nav">
+      <div class="nav-section">Vistas</div>
+      <div class="nav-item active"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+      <div class="nav-item"><i class="ti ti-users"></i> Todos los clientes</div>
+      <div class="nav-item"><i class="ti ti-bell"></i> Alertas <span style="margin-left:auto;background:#faece7;color:#993c1d;font-size:10px;padding:1px 6px;border-radius:10px;">3</span></div>
+      <div class="nav-item"><i class="ti ti-chart-line"></i> Benchmarks</div>
+      <div class="nav-item"><i class="ti ti-file-text"></i> Reportes PDF</div>
+      <div class="nav-section">Clientes</div>
+    </div>
+    <div class="client-list">
+      <div class="client-item selected" onclick="selectClient(0)">
+        <div class="client-avatar av-green">MG</div>
+        <div class="client-info"><div class="client-name">Martín García</div><div class="client-type">Persona física</div></div>
+        <span class="client-badge badge-mod">Mod</span>
+      </div>
+      <div class="client-item" onclick="selectClient(1)">
+        <div class="client-avatar av-blue">SL</div>
+        <div class="client-info"><div class="client-name">Sara López</div><div class="client-type">Persona física</div></div>
+        <span class="client-badge badge-cons">Cons</span>
+      </div>
+      <div class="client-item" onclick="selectClient(2)">
+        <div class="client-avatar av-amber">TI</div>
+        <div class="client-info"><div class="client-name">Techno Insumos SA</div><div class="client-type">PyME</div></div>
+        <span class="client-badge badge-agr">Agr</span>
+      </div>
+      <div class="client-item" onclick="selectClient(3)">
+        <div class="client-avatar av-purple">RB</div>
+        <div class="client-info"><div class="client-name">Roberto Bianchi</div><div class="client-type">Persona física</div></div>
+        <span class="client-badge badge-cons">Cons</span>
+      </div>
+      <button class="add-btn"><i class="ti ti-plus"></i> Nuevo cliente</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <span class="page-title" id="client-title">Martín García</span>
+        <span class="api-badge" id="api-status"><span class="api-dot" id="api-dot"></span><span id="api-label">Sin datos</span></span>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-icon" id="refresh-btn" title="Actualizar precios" onclick="fetchPrices()"><i class="ti ti-refresh"></i></button>
+        <button class="btn-pdf" id="pdf-btn" title="Generar PDF para cliente" onclick="generarPDF()"><i class="ti ti-file-export"></i> Exportar PDF</button>
+        <button class="btn-primary" onclick="sendPrompt('Agregar posición a la cartera de Martín García')"><i class="ti ti-plus"></i> Agregar posición ↗</button>
+      </div>
+    </div>
+
+    <div class="content" id="main-content">
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">Valor total de cartera</div>
+          <div class="metric-value" id="m-total">$47.320.000</div>
+          <div class="metric-sub up"><i class="ti ti-trending-up" style="font-size:12px"></i> +8,4% este mes</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Rendimiento total</div>
+          <div class="metric-value up" id="m-rend">+34,2%</div>
+          <div class="metric-sub" style="color:var(--color-text-tertiary)">Desde inicio · 14 meses</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">vs. Inflación (CER)</div>
+          <div class="metric-value up" id="m-cer">+12,1%</div>
+          <div class="metric-sub" style="color:var(--color-text-tertiary)">Rendimiento real</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Posiciones activas</div>
+          <div class="metric-value" id="m-pos">6</div>
+          <div class="metric-sub" style="color:var(--color-text-tertiary)">3 monedas</div>
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab active">Posiciones</div>
+        <div class="tab">Evolución</div>
+        <div class="tab">Alertas</div>
+      </div>
+
+      <div class="two-col">
+        <div class="section-card">
+          <div class="section-title">Posiciones actuales</div>
+          <table class="holdings-table">
+            <thead>
+              <tr>
+                <th>Instrumento</th><th>Tipo</th>
+                <th style="text-align:right">Compra</th>
+                <th style="text-align:right">Actual</th>
+                <th style="text-align:right">P&L</th>
+              </tr>
+            </thead>
+            <tbody id="holdings-body">
+              <tr>
+                <td><span class="ticker-badge">AAPL</span></td>
+                <td><span class="type-tag tag-cedear">CEDEAR</span></td>
+                <td style="text-align:right;color:var(--color-text-secondary)">$8.200</td>
+                <td style="text-align:right" class="price-cell" data-ticker="AAPL">$9.450</td>
+                <td style="text-align:right" class="pnl-cell up" data-buy="8200">+15,2%</td>
+              </tr>
+              <tr>
+                <td><span class="ticker-badge">AL30</span></td>
+                <td><span class="type-tag tag-bono">Bono USD</span></td>
+                <td style="text-align:right;color:var(--color-text-secondary)">$52,0</td>
+                <td style="text-align:right" class="price-cell" data-ticker="AL30">$61,5</td>
+                <td style="text-align:right" class="pnl-cell up" data-buy="52">+18,3%</td>
+              </tr>
+              <tr>
+                <td><span class="ticker-badge">S31E5</span></td>
+                <td><span class="type-tag tag-lecap">LECAP</span></td>
+                <td style="text-align:right;color:var(--color-text-secondary)">$985</td>
+                <td style="text-align:right" class="price-cell" data-ticker="S31E5">$1.032</td>
+                <td style="text-align:right" class="pnl-cell up" data-buy="985">+4,8%</td>
+              </tr>
+              <tr>
+                <td><span class="ticker-badge">MSFT</span></td>
+                <td><span class="type-tag tag-cedear">CEDEAR</span></td>
+                <td style="text-align:right;color:var(--color-text-secondary)">$11.400</td>
+                <td style="text-align:right" class="price-cell" data-ticker="MSFT">$10.870</td>
+                <td style="text-align:right" class="pnl-cell down" data-buy="11400">-4,6%</td>
+              </tr>
+              <tr>
+                <td><span class="ticker-badge">TX26</span></td>
+                <td><span class="type-tag tag-bono">Bono CER</span></td>
+                <td style="text-align:right;color:var(--color-text-secondary)">$178</td>
+                <td style="text-align:right" class="price-cell" data-ticker="TX26">$211</td>
+                <td style="text-align:right" class="pnl-cell up" data-buy="178">+18,5%</td>
+              </tr>
+              <tr>
+                <td><span class="ticker-badge">YPFD</span></td>
+                <td><span class="type-tag tag-accion">Acción</span></td>
+                <td style="text-align:right;color:var(--color-text-secondary)">$38.200</td>
+                <td style="text-align:right" class="price-cell" data-ticker="YPFD">$42.100</td>
+                <td style="text-align:right" class="pnl-cell up" data-buy="38200">+10,2%</td>
+              </tr>
+            </tbody>
+          </table>
+          <button class="add-btn"><i class="ti ti-plus"></i> Agregar posición</button>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="section-card">
+            <div class="section-title">Composición por tipo</div>
+            <div class="alloc-list" id="alloc-list">
+              <div class="alloc-row">
+                <span class="alloc-label">CEDEARs</span>
+                <div class="alloc-bar-bg"><div class="alloc-bar-fill" style="width:42%;background:#534ab7"></div></div>
+                <span class="alloc-pct">42%</span>
+              </div>
+              <div class="alloc-row">
+                <span class="alloc-label">Bonos USD</span>
+                <div class="alloc-bar-bg"><div class="alloc-bar-fill" style="width:25%;background:#0f6e56"></div></div>
+                <span class="alloc-pct">25%</span>
+              </div>
+              <div class="alloc-row">
+                <span class="alloc-label">Bonos CER</span>
+                <div class="alloc-bar-bg"><div class="alloc-bar-fill" style="width:18%;background:#3b6d11"></div></div>
+                <span class="alloc-pct">18%</span>
+              </div>
+              <div class="alloc-row">
+                <span class="alloc-label">LECAPs</span>
+                <div class="alloc-bar-bg"><div class="alloc-bar-fill" style="width:9%;background:#ba7517"></div></div>
+                <span class="alloc-pct">9%</span>
+              </div>
+              <div class="alloc-row">
+                <span class="alloc-label">Acciones</span>
+                <div class="alloc-bar-bg"><div class="alloc-bar-fill" style="width:6%;background:#185fa5"></div></div>
+                <span class="alloc-pct">6%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-title">Alertas activas</div>
+            <div class="alerts-list">
+              <div class="alert-item" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:12px;">
+                <span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#ba7517;"></span>
+                <span style="flex:1;color:var(--color-text-primary)">S31E5 vence en 28 días</span>
+                <span style="font-size:10px;color:var(--color-text-tertiary)">02/07/25</span>
+              </div>
+              <div class="alert-item" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:12px;margin-top:6px;">
+                <span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#639922;"></span>
+                <span style="flex:1;color:var(--color-text-primary)">AL30 superó objetivo +18%</span>
+                <span style="font-size:10px;color:var(--color-text-tertiary)">Hoy</span>
+              </div>
+              <div class="alert-item" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);font-size:12px;margin-top:6px;">
+                <span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#a32d2d;"></span>
+                <span style="flex:1;color:var(--color-text-primary)">MSFT bajo -4% vs compra</span>
+                <span style="font-size:10px;color:var(--color-text-tertiary)">Ayer</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <span id="status-source">Precios: — · BYMADATA Open (20 min delay)</span>
+      <span id="status-time">Última actualización: —</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ SCRIPTS ═══════════════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+// ─── Datos de clientes ────────────────────────────────────────────────────────
+const clients = [
+  { name: 'Martín García',     type: 'Persona física', total: '$47.320.000', rend: '+34,2%', cer: '+12,1%', pos: 6, perfil: 'Moderado' },
+  { name: 'Sara López',        type: 'Persona física', total: '$23.180.000', rend: '+18,7%', cer: '+4,2%',  pos: 4, perfil: 'Conservador' },
+  { name: 'Techno Insumos SA', type: 'PyME',           total: '$112.500.000',rend: '+41,3%', cer: '+19,8%', pos: 8, perfil: 'Agresivo' },
+  { name: 'Roberto Bianchi',   type: 'Persona física', total: '$8.750.000',  rend: '+9,1%',  cer: '-2,3%',  pos: 3, perfil: 'Conservador' }
+];
+let currentClientIdx = 0;
+
+function selectClient(i) {
+  currentClientIdx = i;
+  document.querySelectorAll('.client-item').forEach((el, idx) => el.classList.toggle('selected', idx === i));
+  const c = clients[i];
+  document.getElementById('client-title').textContent = c.name;
+  document.getElementById('m-total').textContent = c.total;
+  const rendEl = document.getElementById('m-rend');
+  rendEl.textContent = c.rend;
+  rendEl.className = 'metric-value ' + (c.rend.startsWith('+') ? 'up' : 'down');
+  const cerEl = document.getElementById('m-cer');
+  cerEl.textContent = c.cer;
+  cerEl.className = 'metric-value ' + (c.cer.startsWith('+') ? 'up' : 'down');
+  document.getElementById('m-pos').textContent = c.pos;
+}
+
+// ─── Motor de precios BYMADATA Open ──────────────────────────────────────────
+const BYMA_BASE = 'https://open.bymadata.com.ar/assets/json';
+const CORS_PROXY = 'https://corsproxy.io/?';
+const TICKER_SOURCE = {
+  'AAPL':'cedears','MSFT':'cedears',
+  'AL30':'bonds','TX26':'bonds',
+  'S31E5':'short-term-notes',
+  'YPFD':'leading-equity',
+};
+let endpointCache = {};
+
+function setBadge(state, text) {
+  document.getElementById('api-status').className = 'api-badge ' + state;
+  document.getElementById('api-dot').className = 'api-dot' + (state === 'loading' ? ' spin' : '');
+  document.getElementById('api-label').textContent = text;
+}
+function setRefreshSpinning(on) {
+  document.getElementById('refresh-btn').classList.toggle('spinning', on);
+}
+
+async function fetchEndpoint(ep) {
+  if (endpointCache[ep]) return endpointCache[ep];
+  const url = `${BYMA_BASE}/${ep}`;
+  let data = null;
+  try {
+    const r = await fetch(url, { headers:{'Accept':'application/json'} });
+    if (!r.ok) throw new Error(r.status);
+    data = await r.json();
+  } catch {
+    try {
+      const r2 = await fetch(CORS_PROXY + encodeURIComponent(url));
+      if (!r2.ok) throw new Error(r2.status);
+      data = await r2.json();
+    } catch(e2) { console.warn('BYMA fetch falló:', ep, e2); return null; }
+  }
+  endpointCache[ep] = data;
+  return data;
+}
+
+function extractPrice(data, ticker) {
+  if (!Array.isArray(data)) return null;
+  const item = data.find(d =>
+    (d.symbol && d.symbol.trim().toUpperCase() === ticker.toUpperCase()) ||
+    (d.descripcionAbreviada && d.descripcionAbreviada.trim().toUpperCase() === ticker.toUpperCase())
+  );
+  if (!item) return null;
+  const p = (item.trade && item.trade > 0) ? item.trade : item.closingPrice;
+  return p ? parseFloat(p) : null;
+}
+
+function formatPrice(price, ticker) {
+  if (price === null) return '—';
+  const cents = ['AL30','TX26','S31E5'].includes(ticker.toUpperCase());
+  return cents
+    ? '$' + price.toLocaleString('es-AR', {minimumFractionDigits:1,maximumFractionDigits:2})
+    : '$' + Math.round(price).toLocaleString('es-AR');
+}
+
+async function fetchPrices() {
+  setBadge('loading','Actualizando…');
+  setRefreshSpinning(true);
+  endpointCache = {};
+  const cells = document.querySelectorAll('.price-cell[data-ticker]');
+  cells.forEach(c => c.classList.add('updating'));
+  let ok = 0, fail = 0;
+  for (const cell of cells) {
+    const ticker = cell.dataset.ticker;
+    const ep = TICKER_SOURCE[ticker.toUpperCase()];
+    if (!ep) continue;
+    const data = await fetchEndpoint(ep);
+    const price = extractPrice(data, ticker);
+    if (price !== null) {
+      cell.textContent = formatPrice(price, ticker);
+      cell.classList.remove('updating');
+      const row = cell.closest('tr');
+      const pnlEl = row.querySelector('.pnl-cell');
+      const buy = parseFloat(pnlEl?.dataset.buy);
+      if (pnlEl && !isNaN(buy)) {
+        const pct = ((price - buy) / buy) * 100;
+        pnlEl.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(1).replace('.',',') + '%';
+        pnlEl.className = 'pnl-cell ' + (pct >= 0 ? 'up' : 'down');
+        pnlEl.style.textAlign = 'right';
+      }
+      ok++;
+    } else { cell.classList.remove('updating'); fail++; }
+  }
+  setRefreshSpinning(false);
+  const now = new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('status-time').textContent = 'Última actualización: ' + now;
+  if (ok > 0 && fail === 0) { setBadge('live','BYMA · 20 min delay'); document.getElementById('status-source').textContent = 'Precios: BYMADATA Open · 20 min delay'; }
+  else if (ok > 0)          { setBadge('live','BYMA · parcial');       document.getElementById('status-source').textContent = `Precios: BYMA · ${ok} ok, ${fail} sin dato`; }
+  else                      { setBadge('error','Sin conexión');         document.getElementById('status-source').textContent = 'Precios: sin datos · revisá tu conexión'; }
+}
+
+// ─── Generador de PDF ─────────────────────────────────────────────────────────
+function buildPdfHTML() {
+  const c = clients[currentClientIdx];
+  const fecha = new Date().toLocaleDateString('es-AR', {day:'2-digit', month:'long', year:'numeric'});
+  const updateTime = document.getElementById('status-time').textContent.replace('Última actualización: ','') || '—';
+
+  // Leer posiciones de la tabla actual
+  const rows = document.querySelectorAll('#holdings-body tr');
+  let posicionesHTML = '';
+  rows.forEach(row => {
+    const ticker  = row.querySelector('.ticker-badge')?.textContent.trim() || '';
+    const tipo    = row.querySelector('.type-tag')?.textContent.trim() || '';
+    const compra  = row.cells[2]?.textContent.trim() || '';
+    const actual  = row.cells[3]?.textContent.trim() || '';
+    const pnl     = row.querySelector('.pnl-cell')?.textContent.trim() || '';
+    const isUp    = row.querySelector('.pnl-cell')?.classList.contains('up');
+    const pnlColor = isUp ? '#2a6b1a' : '#8c2020';
+
+    // Color de tag por tipo
+    let tagBg = '#eeedfe', tagColor = '#534ab7';
+    if (tipo === 'Bono USD' || tipo === 'Bono CER') { tagBg = '#e1f5ee'; tagColor = '#0f6e56'; }
+    else if (tipo === 'LECAP')   { tagBg = '#faeeda'; tagColor = '#854f0b'; }
+    else if (tipo === 'Acción')  { tagBg = '#e6f1fb'; tagColor = '#185fa5'; }
+
+    posicionesHTML += `
+      <tr>
+        <td style="padding:7px 8px;border-bottom:1px solid #e8e4dc;font-size:11px;font-weight:600;color:#1a1a1a;">${ticker}</td>
+        <td style="padding:7px 8px;border-bottom:1px solid #e8e4dc;">
+          <span style="font-size:9px;padding:2px 6px;border-radius:3px;background:${tagBg};color:${tagColor};font-weight:500;">${tipo}</span>
+        </td>
+        <td style="padding:7px 8px;border-bottom:1px solid #e8e4dc;text-align:right;font-size:11px;color:#666;">${compra}</td>
+        <td style="padding:7px 8px;border-bottom:1px solid #e8e4dc;text-align:right;font-size:11px;font-weight:600;color:#1a1a1a;">${actual}</td>
+        <td style="padding:7px 8px;border-bottom:1px solid #e8e4dc;text-align:right;font-size:11px;font-weight:700;color:${pnlColor};">${pnl}</td>
+      </tr>`;
+  });
+
+  // Leer composición
+  const allocRows = document.querySelectorAll('#alloc-list .alloc-row');
+  let allocHTML = '';
+  const allocColors = {'CEDEARs':'#534ab7','Bonos USD':'#0f6e56','Bonos CER':'#3b6d11','LECAPs':'#ba7517','Acciones':'#185fa5'};
+  allocRows.forEach(row => {
+    const label = row.querySelector('.alloc-label')?.textContent.trim() || '';
+    const pct   = row.querySelector('.alloc-pct')?.textContent.trim() || '';
+    const fillW = row.querySelector('.alloc-bar-fill')?.style.width || '0%';
+    const barColor = allocColors[label] || '#b8963e';
+    allocHTML += `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="font-size:11px;color:#333;width:80px;flex-shrink:0;">${label}</span>
+        <div style="flex:1;height:5px;background:#e8e4dc;border-radius:3px;overflow:hidden;">
+          <div style="width:${fillW};height:100%;background:${barColor};border-radius:3px;"></div>
+        </div>
+        <span style="font-size:11px;color:#666;width:28px;text-align:right;">${pct}</span>
+      </div>`;
+  });
+
+  const rendColor = c.rend.startsWith('+') ? '#2a6b1a' : '#8c2020';
+  const cerColor  = c.cer.startsWith('+')  ? '#2a6b1a' : '#8c2020';
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Georgia', serif; background: #fff; color: #1a1a1a; }
+  @page { size: A4; margin: 0; }
+</style>
+</head>
+<body style="width:210mm;min-height:297mm;padding:0;">
+
+  <!-- HEADER -->
+  <div style="background:#1a3a2a;padding:28px 36px 22px;display:flex;align-items:flex-start;justify-content:space-between;">
+    <div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        <div style="width:40px;height:40px;background:#b8963e;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;font-family:Georgia,serif;letter-spacing:1px;">FR</div>
+        <div>
+          <div style="font-size:17px;font-weight:700;color:#e8d5a3;font-family:Georgia,serif;letter-spacing:0.5px;">FR Asesoría Financiera</div>
+          <div style="font-size:10px;color:#a0b89a;margin-top:2px;letter-spacing:0.3px;">Asesor Registrado · CNV</div>
+        </div>
+      </div>
+      <div style="font-size:9px;color:#7a9e7a;line-height:1.6;">
+        Federico Randazzo &nbsp;·&nbsp; federico@frasesoria.com.ar &nbsp;·&nbsp; +54 9 11 0000-0000<br>
+        www.frasesoria.com.ar &nbsp;·&nbsp; Idóneo registrado CNV
+      </div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:11px;color:#a0b89a;margin-bottom:4px;">Informe de cartera</div>
+      <div style="font-size:10px;color:#7a9e7a;">${fecha}</div>
+      <div style="font-size:9px;color:#5a7e5a;margin-top:3px;">Precios al: ${updateTime}</div>
+    </div>
+  </div>
+
+  <!-- BANDA DORADA -->
+  <div style="height:3px;background:linear-gradient(90deg,#b8963e,#d4af6a,#b8963e);"></div>
+
+  <!-- DATOS DEL CLIENTE -->
+  <div style="padding:22px 36px 16px;border-bottom:1px solid #e8e4dc;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:8px;letter-spacing:1.2px;text-transform:uppercase;color:#999;margin-bottom:4px;">Cliente</div>
+        <div style="font-size:19px;font-weight:700;color:#1a1a1a;font-family:Georgia,serif;">${c.name}</div>
+        <div style="font-size:10px;color:#888;margin-top:3px;">${c.type} &nbsp;·&nbsp; Perfil: ${c.perfil}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:8px;letter-spacing:1.2px;text-transform:uppercase;color:#999;margin-bottom:4px;">Valor de cartera</div>
+        <div style="font-size:24px;font-weight:700;color:#1a3a2a;font-family:Georgia,serif;">${c.total}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MÉTRICAS RESUMEN -->
+  <div style="padding:18px 36px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;border-bottom:1px solid #e8e4dc;">
+    <div style="background:#f7f5f0;border-radius:8px;padding:14px 16px;border-left:3px solid #b8963e;">
+      <div style="font-size:9px;letter-spacing:0.8px;text-transform:uppercase;color:#888;margin-bottom:6px;">Rendimiento total</div>
+      <div style="font-size:22px;font-weight:700;color:${rendColor};font-family:Georgia,serif;">${c.rend}</div>
+      <div style="font-size:9px;color:#aaa;margin-top:4px;">Desde inicio · 14 meses</div>
+    </div>
+    <div style="background:#f7f5f0;border-radius:8px;padding:14px 16px;border-left:3px solid #1a3a2a;">
+      <div style="font-size:9px;letter-spacing:0.8px;text-transform:uppercase;color:#888;margin-bottom:6px;">vs. Inflación (CER)</div>
+      <div style="font-size:22px;font-weight:700;color:${cerColor};font-family:Georgia,serif;">${c.cer}</div>
+      <div style="font-size:9px;color:#aaa;margin-top:4px;">Rendimiento real acumulado</div>
+    </div>
+    <div style="background:#f7f5f0;border-radius:8px;padding:14px 16px;border-left:3px solid #d4af6a;">
+      <div style="font-size:9px;letter-spacing:0.8px;text-transform:uppercase;color:#888;margin-bottom:6px;">Posiciones activas</div>
+      <div style="font-size:22px;font-weight:700;color:#1a1a1a;font-family:Georgia,serif;">${c.pos}</div>
+      <div style="font-size:9px;color:#aaa;margin-top:4px;">Instrumentos en cartera</div>
+    </div>
+  </div>
+
+  <!-- POSICIONES + COMPOSICIÓN -->
+  <div style="padding:18px 36px;display:grid;grid-template-columns:1.4fr 1fr;gap:20px;border-bottom:1px solid #e8e4dc;">
+
+    <!-- Posiciones -->
+    <div>
+      <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:12px;font-weight:600;">Detalle de posiciones</div>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="border-bottom:2px solid #1a3a2a;">
+            <th style="text-align:left;font-size:9px;font-weight:600;color:#555;padding:0 8px 6px 8px;text-transform:uppercase;letter-spacing:0.5px;">Instrumento</th>
+            <th style="text-align:left;font-size:9px;font-weight:600;color:#555;padding:0 8px 6px;text-transform:uppercase;letter-spacing:0.5px;">Tipo</th>
+            <th style="text-align:right;font-size:9px;font-weight:600;color:#555;padding:0 8px 6px;text-transform:uppercase;letter-spacing:0.5px;">Compra</th>
+            <th style="text-align:right;font-size:9px;font-weight:600;color:#555;padding:0 8px 6px;text-transform:uppercase;letter-spacing:0.5px;">Actual</th>
+            <th style="text-align:right;font-size:9px;font-weight:600;color:#555;padding:0 8px 6px;text-transform:uppercase;letter-spacing:0.5px;">P&amp;L</th>
+          </tr>
+        </thead>
+        <tbody>${posicionesHTML}</tbody>
+      </table>
+    </div>
+
+    <!-- Composición -->
+    <div>
+      <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:12px;font-weight:600;">Composición</div>
+      ${allocHTML}
+    </div>
+  </div>
+
+  <!-- DISCLAIMER -->
+  <div style="padding:16px 36px;">
+    <div style="font-size:8px;color:#aaa;line-height:1.6;border-top:1px solid #eee;padding-top:12px;">
+      <strong style="color:#888;">Aviso legal:</strong> Este informe es de carácter informativo y no constituye una recomendación de inversión. Los rendimientos pasados no garantizan resultados futuros. 
+      La información de precios proviene de BYMADATA Open (BYMA S.A.) con hasta 20 minutos de demora. FR Asesoría Financiera opera como asesor registrado ante la CNV.
+      El presente documento es confidencial y está destinado exclusivamente al cliente indicado.
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div style="background:#f7f5f0;padding:10px 36px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid #e8e4dc;">
+    <span style="font-size:8px;color:#aaa;">FR Asesoría Financiera · Idóneo CNV · federico@frasesoria.com.ar</span>
+    <span style="font-size:8px;color:#aaa;">Generado el ${fecha}</span>
+  </div>
+
+</body>
+</html>`;
+}
+
+async function generarPDF() {
+  const btn = document.getElementById('pdf-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Generando…';
+
+  const c = clients[currentClientIdx];
+  const htmlContent = buildPdfHTML();
+
+  const container = document.createElement('div');
+  container.style.cssText = 'position:absolute;left:-9999px;top:0;width:210mm;';
+  container.innerHTML = htmlContent;
+  document.body.appendChild(container);
+
+  const opt = {
+    margin:      0,
+    filename:    `Cartera_${c.name.replace(/\s+/g,'_')}_FR.pdf`,
+    image:       { type: 'jpeg', quality: 0.97 },
+    html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+    jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak:   { mode: 'avoid-all' }
+  };
+
+  try {
+    await html2pdf().set(opt).from(container).save();
+  } finally {
+    document.body.removeChild(container);
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-file-export"></i> Exportar PDF';
+  }
+}
+
+// Iniciar al cargar
+fetchPrices();
+</script>
