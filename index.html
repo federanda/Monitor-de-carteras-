@@ -34,10 +34,8 @@ html, body {
   background-size: 28px 28px;
 }
 
-/* ── Layout ── */
 .shell { display: flex; flex-direction: column; min-height: 100vh; }
 
-/* ── Topnav ── */
 .topnav {
   background: var(--green); padding: 0 24px;
   display: flex; align-items: center; justify-content: space-between;
@@ -91,10 +89,8 @@ html, body {
 }
 .btn-outline:hover { background: rgba(255,255,255,0.08); color: #fff; }
 
-/* ── Body wrap ── */
 .body-wrap { display: flex; flex: 1; }
 
-/* ── Sidebar ── */
 .sidebar {
   width: 234px; min-width: 234px; background: #fff;
   border-right: 1px solid var(--border); display: flex; flex-direction: column;
@@ -144,8 +140,8 @@ html, body {
   color: var(--text-3); cursor: pointer; display: flex; align-items: center; justify-content: center;
   font-size: 13px; transition: all 0.12s;
 }
-.btn-client-action:hover.edit { background: #e8f0eb; color: var(--green); }
-.btn-client-action:hover.del  { background: #fce9e9; color: var(--down); }
+.btn-client-action.edit:hover { background: #e8f0eb; color: var(--green); }
+.btn-client-action.del:hover  { background: #fce9e9; color: var(--down); }
 
 .avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; flex-shrink: 0; }
 .av-g { background: #e0ece5; color: #1a3a2a; }
@@ -163,7 +159,6 @@ html, body {
 .p-cons { background: #dceaf7; color: #1a4a7a; }
 .p-agr  { background: #fce9e9; color: #8c2020; }
 
-/* ── Main ── */
 .main { flex: 1; display: flex; flex-direction: column; min-width: 0; padding: 24px 28px; gap: 20px; overflow-y: auto; }
 
 .client-header { display: flex; align-items: flex-end; justify-content: space-between; }
@@ -191,7 +186,6 @@ html, body {
   margin-bottom: 14px; font-weight: 600; display: flex; align-items: center; justify-content: space-between;
 }
 .card-title-left { display: flex; align-items: center; gap: 6px; }
-.card-title-left::after { content: ''; display: block; } /* eliminado el after en title */
 
 .pos-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .pos-table th {
@@ -208,8 +202,8 @@ html, body {
   cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px;
   color: var(--text-3); transition: all 0.12s;
 }
-.btn-row:hover.edit { background: #e8f0eb; color: var(--green); }
-.btn-row:hover.del  { background: #fce9e9; color: var(--down); }
+.btn-row.edit:hover { background: #e8f0eb; color: var(--green); }
+.btn-row.del:hover  { background: #fce9e9; color: var(--down); }
 
 .ticker { font-size: 11px; font-weight: 600; padding: 2px 7px; background: var(--cream-mid); border-radius: 4px; letter-spacing: 0.3px; }
 .tag { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 500; }
@@ -247,7 +241,6 @@ html, body {
   font-size: 10px; color: var(--text-3);
 }
 
-/* ── Empty state ── */
 .empty-state {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 12px; color: var(--text-3); padding: 60px;
@@ -255,7 +248,10 @@ html, body {
 .empty-state i { font-size: 40px; opacity: 0.3; }
 .empty-state p { font-size: 13px; }
 
-/* ── Modal overlay ── */
+/* ── client-view como bloque flex columna ── */
+#client-view { display: none; flex-direction: column; gap: 20px; }
+#client-view.visible { display: flex; }
+
 .overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000;
   display: flex; align-items: center; justify-content: center;
@@ -316,7 +312,6 @@ html, body {
   font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 2px;
 }
 
-/* toast */
 .toast {
   position: fixed; bottom: 24px; right: 24px; z-index: 2000;
   background: var(--green); color: #e8d5a3; padding: 10px 18px; border-radius: 8px;
@@ -330,7 +325,6 @@ html, body {
 <body>
 <div class="shell">
 
-<!-- TOPNAV -->
 <nav class="topnav">
   <div class="tn-brand">
     <div class="tn-logo">FR</div>
@@ -353,7 +347,6 @@ html, body {
 
 <div class="body-wrap">
 
-<!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="nav-item active"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
   <div class="nav-item"><i class="ti ti-bell"></i> Alertas <span class="nav-badge" id="alert-count">0</span></div>
@@ -365,15 +358,13 @@ html, body {
   <div class="client-list" id="client-list"></div>
 </aside>
 
-<!-- MAIN -->
 <main class="main" id="main">
   <div class="empty-state" id="empty-state">
     <i class="ti ti-users"></i>
     <p>Seleccioná un cliente o creá uno nuevo</p>
     <button class="btn-primary" style="margin-top:8px" onclick="openModalCliente()"><i class="ti ti-plus"></i> Nuevo cliente</button>
   </div>
-  <div id="client-view" style="display:none;flex-direction:column;gap:20px;">
-    <!-- Header cliente -->
+  <div id="client-view">
     <div class="client-header">
       <div>
         <div class="ch-name" id="c-name"></div>
@@ -384,7 +375,6 @@ html, body {
         <div class="ch-total-value" id="c-total">—</div>
       </div>
     </div>
-    <!-- Métricas -->
     <div class="metrics-row">
       <div class="metric-card">
         <div class="metric-label">Rendimiento total</div>
@@ -402,7 +392,6 @@ html, body {
         <div class="metric-sub" id="m-pos-sub"></div>
       </div>
     </div>
-    <!-- Tabla + Composición -->
     <div class="two-col">
       <div class="card">
         <div class="card-title">
@@ -434,15 +423,14 @@ html, body {
 </main>
 </div>
 
-<!-- STATUS BAR -->
 <div class="statusbar">
   <span id="status-src">Precios: BYMADATA Open · 20 min delay</span>
   <span id="status-time">Última actualización: —</span>
 </div>
 
-</div><!-- /shell -->
+</div>
 
-<!-- ═══════ MODAL CLIENTE ═══════ -->
+<!-- MODAL CLIENTE -->
 <div class="overlay" id="overlay-cliente" onclick="closeOnOverlay(event,'overlay-cliente')">
   <div class="modal">
     <div class="modal-header">
@@ -510,7 +498,7 @@ html, body {
   </div>
 </div>
 
-<!-- ═══════ MODAL POSICIÓN ═══════ -->
+<!-- MODAL POSICIÓN -->
 <div class="overlay" id="overlay-posicion" onclick="closeOnOverlay(event,'overlay-posicion')">
   <div class="modal">
     <div class="modal-header">
@@ -589,7 +577,7 @@ html, body {
   </div>
 </div>
 
-<!-- ═══════ MODAL CONFIRMAR BORRAR ═══════ -->
+<!-- MODAL CONFIRMAR -->
 <div class="overlay" id="overlay-confirm" onclick="closeOnOverlay(event,'overlay-confirm')">
   <div class="modal" style="width:360px;">
     <div class="modal-header">
@@ -606,7 +594,6 @@ html, body {
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
@@ -617,52 +604,52 @@ const LS_KEY = 'frasesoriaCarteras_v1';
 
 const CLIENTES_DEFAULT = [
   {
-    id: 'c1', nombre: 'Martín García', tipo: 'Persona física', perfil: 'Moderado',
-    moneda: 'ARS', total: '$47.320.000', rend: '+34,2%', rendSub: 'Desde inicio · 14 meses',
-    cer: '+12,1%', avatar: 'MG', avClass: 'av-g',
-    holdings: [
-      { ticker:'AAPL',  tipo:'CEDEAR',   tagClass:'tag-cedear', qty:50,  compra:8200,  precioActual:9450,  endpoint:'cedears' },
-      { ticker:'AL30',  tipo:'Bono USD', tagClass:'tag-bono',   qty:1000,compra:52,    precioActual:61.5,  endpoint:'bonds' },
-      { ticker:'S31E5', tipo:'LECAP',    tagClass:'tag-lecap',  qty:200, compra:985,   precioActual:1032,  endpoint:'short-term-notes' },
-      { ticker:'MSFT',  tipo:'CEDEAR',   tagClass:'tag-cedear', qty:20,  compra:11400, precioActual:10870, endpoint:'cedears' },
-      { ticker:'TX26',  tipo:'Bono CER', tagClass:'tag-bono',   qty:500, compra:178,   precioActual:211,   endpoint:'bonds' },
-      { ticker:'YPFD',  tipo:'Acción',   tagClass:'tag-accion', qty:30,  compra:38200, precioActual:42100, endpoint:'leading-equity' },
+    id:'c1', nombre:'Martín García', tipo:'Persona física', perfil:'Moderado',
+    moneda:'ARS', total:'$47.320.000', rend:'+34,2%', rendSub:'Desde inicio · 14 meses',
+    cer:'+12,1%', avatar:'MG', avClass:'av-g',
+    holdings:[
+      {ticker:'AAPL', tipo:'CEDEAR',   tagClass:'tag-cedear', qty:50,   compra:8200,  precioActual:9450,  endpoint:'cedears'},
+      {ticker:'AL30', tipo:'Bono USD', tagClass:'tag-bono',   qty:1000, compra:52,    precioActual:61.5,  endpoint:'bonds'},
+      {ticker:'S31E5',tipo:'LECAP',    tagClass:'tag-lecap',  qty:200,  compra:985,   precioActual:1032,  endpoint:'short-term-notes'},
+      {ticker:'MSFT', tipo:'CEDEAR',   tagClass:'tag-cedear', qty:20,   compra:11400, precioActual:10870, endpoint:'cedears'},
+      {ticker:'TX26', tipo:'Bono CER', tagClass:'tag-bono',   qty:500,  compra:178,   precioActual:211,   endpoint:'bonds'},
+      {ticker:'YPFD', tipo:'Acción',   tagClass:'tag-accion', qty:30,   compra:38200, precioActual:42100, endpoint:'leading-equity'},
     ]
   },
   {
-    id: 'c2', nombre: 'Sara López', tipo: 'Persona física', perfil: 'Conservador',
-    moneda: 'ARS', total: '$23.180.000', rend: '+18,7%', rendSub: 'Desde inicio · 9 meses',
-    cer: '+4,2%', avatar: 'SL', avClass: 'av-b',
-    holdings: [
-      { ticker:'AL30',  tipo:'Bono USD', tagClass:'tag-bono',   qty:800, compra:48,   precioActual:61.5, endpoint:'bonds' },
-      { ticker:'TX26',  tipo:'Bono CER', tagClass:'tag-bono',   qty:300, compra:155,  precioActual:211,  endpoint:'bonds' },
-      { ticker:'S31E5', tipo:'LECAP',    tagClass:'tag-lecap',  qty:100, compra:990,  precioActual:1032, endpoint:'short-term-notes' },
-      { ticker:'AAPL',  tipo:'CEDEAR',   tagClass:'tag-cedear', qty:25,  compra:7800, precioActual:9450, endpoint:'cedears' },
+    id:'c2', nombre:'Sara López', tipo:'Persona física', perfil:'Conservador',
+    moneda:'ARS', total:'$23.180.000', rend:'+18,7%', rendSub:'Desde inicio · 9 meses',
+    cer:'+4,2%', avatar:'SL', avClass:'av-b',
+    holdings:[
+      {ticker:'AL30', tipo:'Bono USD', tagClass:'tag-bono',   qty:800, compra:48,   precioActual:61.5, endpoint:'bonds'},
+      {ticker:'TX26', tipo:'Bono CER', tagClass:'tag-bono',   qty:300, compra:155,  precioActual:211,  endpoint:'bonds'},
+      {ticker:'S31E5',tipo:'LECAP',    tagClass:'tag-lecap',  qty:100, compra:990,  precioActual:1032, endpoint:'short-term-notes'},
+      {ticker:'AAPL', tipo:'CEDEAR',   tagClass:'tag-cedear', qty:25,  compra:7800, precioActual:9450, endpoint:'cedears'},
     ]
   },
   {
-    id: 'c3', nombre: 'Techno Insumos SA', tipo: 'PyME', perfil: 'Agresivo',
-    moneda: 'ARS', total: '$112.500.000', rend: '+41,3%', rendSub: 'Desde inicio · 18 meses',
-    cer: '+19,8%', avatar: 'TI', avClass: 'av-a',
-    holdings: [
-      { ticker:'AAPL',  tipo:'CEDEAR',   tagClass:'tag-cedear', qty:120, compra:7200,  precioActual:9450,  endpoint:'cedears' },
-      { ticker:'MSFT',  tipo:'CEDEAR',   tagClass:'tag-cedear', qty:60,  compra:10500, precioActual:10870, endpoint:'cedears' },
-      { ticker:'YPFD',  tipo:'Acción',   tagClass:'tag-accion', qty:80,  compra:32000, precioActual:42100, endpoint:'leading-equity' },
-      { ticker:'AL30',  tipo:'Bono USD', tagClass:'tag-bono',   qty:2000,compra:45,    precioActual:61.5,  endpoint:'bonds' },
-      { ticker:'TX26',  tipo:'Bono CER', tagClass:'tag-bono',   qty:1000,compra:142,   precioActual:211,   endpoint:'bonds' },
-      { ticker:'S31E5', tipo:'LECAP',    tagClass:'tag-lecap',  qty:300, compra:970,   precioActual:1032,  endpoint:'short-term-notes' },
-      { ticker:'MELI',  tipo:'CEDEAR',   tagClass:'tag-cedear', qty:10,  compra:68000, precioActual:74500, endpoint:'cedears' },
-      { ticker:'GGAL',  tipo:'Acción',   tagClass:'tag-accion', qty:200, compra:1850,  precioActual:2340,  endpoint:'leading-equity' },
+    id:'c3', nombre:'Techno Insumos SA', tipo:'PyME', perfil:'Agresivo',
+    moneda:'ARS', total:'$112.500.000', rend:'+41,3%', rendSub:'Desde inicio · 18 meses',
+    cer:'+19,8%', avatar:'TI', avClass:'av-a',
+    holdings:[
+      {ticker:'AAPL', tipo:'CEDEAR',   tagClass:'tag-cedear', qty:120, compra:7200,  precioActual:9450,  endpoint:'cedears'},
+      {ticker:'MSFT', tipo:'CEDEAR',   tagClass:'tag-cedear', qty:60,  compra:10500, precioActual:10870, endpoint:'cedears'},
+      {ticker:'YPFD', tipo:'Acción',   tagClass:'tag-accion', qty:80,  compra:32000, precioActual:42100, endpoint:'leading-equity'},
+      {ticker:'AL30', tipo:'Bono USD', tagClass:'tag-bono',   qty:2000,compra:45,    precioActual:61.5,  endpoint:'bonds'},
+      {ticker:'TX26', tipo:'Bono CER', tagClass:'tag-bono',   qty:1000,compra:142,   precioActual:211,   endpoint:'bonds'},
+      {ticker:'S31E5',tipo:'LECAP',    tagClass:'tag-lecap',  qty:300, compra:970,   precioActual:1032,  endpoint:'short-term-notes'},
+      {ticker:'MELI', tipo:'CEDEAR',   tagClass:'tag-cedear', qty:10,  compra:68000, precioActual:74500, endpoint:'cedears'},
+      {ticker:'GGAL', tipo:'Acción',   tagClass:'tag-accion', qty:200, compra:1850,  precioActual:2340,  endpoint:'leading-equity'},
     ]
   },
   {
-    id: 'c4', nombre: 'Roberto Bianchi', tipo: 'Persona física', perfil: 'Conservador',
-    moneda: 'ARS', total: '$8.750.000', rend: '+9,1%', rendSub: 'Desde inicio · 6 meses',
-    cer: '-2,3%', avatar: 'RB', avClass: 'av-p',
-    holdings: [
-      { ticker:'S31E5', tipo:'LECAP',    tagClass:'tag-lecap', qty:150, compra:975, precioActual:1032, endpoint:'short-term-notes' },
-      { ticker:'AL30',  tipo:'Bono USD', tagClass:'tag-bono',  qty:400, compra:55,  precioActual:61.5, endpoint:'bonds' },
-      { ticker:'TX26',  tipo:'Bono CER', tagClass:'tag-bono',  qty:200, compra:190, precioActual:211,  endpoint:'bonds' },
+    id:'c4', nombre:'Roberto Bianchi', tipo:'Persona física', perfil:'Conservador',
+    moneda:'ARS', total:'$8.750.000', rend:'+9,1%', rendSub:'Desde inicio · 6 meses',
+    cer:'-2,3%', avatar:'RB', avClass:'av-p',
+    holdings:[
+      {ticker:'S31E5',tipo:'LECAP',    tagClass:'tag-lecap', qty:150, compra:975, precioActual:1032, endpoint:'short-term-notes'},
+      {ticker:'AL30', tipo:'Bono USD', tagClass:'tag-bono',  qty:400, compra:55,  precioActual:61.5, endpoint:'bonds'},
+      {ticker:'TX26', tipo:'Bono CER', tagClass:'tag-bono',  qty:200, compra:190, precioActual:211,  endpoint:'bonds'},
     ]
   },
 ];
@@ -732,46 +719,57 @@ function selectClient(i) {
   document.getElementById('c-total').textContent = c.total || '—';
   const rendEl = document.getElementById('m-rend');
   rendEl.textContent = c.rend || '—';
-  rendEl.className   = 'metric-value ' + (c.rend?.startsWith('+') ? 'up' : 'down');
+  rendEl.className   = 'metric-value ' + (c.rend && c.rend.startsWith('+') ? 'up' : 'down');
   document.getElementById('m-rend-sub').textContent = c.rendSub || '';
   const cerEl = document.getElementById('m-cer');
   cerEl.textContent = c.cer || '—';
-  cerEl.className   = 'metric-value ' + (c.cer?.startsWith('+') ? 'up' : 'down');
+  cerEl.className   = 'metric-value ' + (c.cer && c.cer.startsWith('+') ? 'up' : 'down');
   document.getElementById('m-pos').textContent     = c.holdings.length;
-  document.getElementById('m-pos-sub').textContent = `instrumento${c.holdings.length!==1?'s':''} en cartera`;
+  document.getElementById('m-pos-sub').textContent = `instrumento${c.holdings.length !== 1 ? 's' : ''} en cartera`;
   renderHoldings();
   renderAlloc();
 }
 
 function showEmpty() {
   document.getElementById('empty-state').style.display = 'flex';
-  document.getElementById('client-view').style.display = 'none';
+  document.getElementById('client-view').classList.remove('visible');
 }
 function showClientView() {
   document.getElementById('empty-state').style.display = 'none';
-  document.getElementById('client-view').style.display = 'flex';
+  document.getElementById('client-view').classList.add('visible');
+}
+
+// ═══════════════════════════════════════════════════════
+//  FORMATEAR PRECIO
+//  Bonos en centavos de peso: AL29/30/35/38, AE38, GD29/30/35/38, DICP, CUAP, TX26, TX28
+//  LECAPs y BONCAP cotizan en pesos enteros (no centavos)
+// ═══════════════════════════════════════════════════════
+const TICKERS_CENTAVOS = new Set([
+  'AL29','AL30','AL35','AL38',
+  'AE38',
+  'GD29','GD30','GD35','GD38',
+  'DICP','CUAP',
+  'TX26','TX28','TX30'
+]);
+
+function fmtP(price, ticker) {
+  if (price === null || price === undefined || isNaN(price)) return '—';
+  const cents = TICKERS_CENTAVOS.has((ticker || '').toUpperCase());
+  return cents
+    ? '$' + Number(price).toLocaleString('es-AR', {minimumFractionDigits:1, maximumFractionDigits:2})
+    : '$' + Math.round(price).toLocaleString('es-AR');
 }
 
 // ═══════════════════════════════════════════════════════
 //  RENDER HOLDINGS
 // ═══════════════════════════════════════════════════════
-function fmtP(price, ticker) {
-  if (price === null || price === undefined || isNaN(price)) return '—';
-  const cents = ['AL30','AE38','GD30','GD38','TX26','DICP','CUAP',
-                 'S31E5','S14F5','S28F5','S16G5','S28G5'].includes((ticker||'').toUpperCase());
-  return cents
-    ? '$' + Number(price).toLocaleString('es-AR',{minimumFractionDigits:1,maximumFractionDigits:2})
-    : '$' + Math.round(price).toLocaleString('es-AR');
-}
-
 function renderHoldings() {
   if (currentIdx < 0) return;
   const c = CLIENTES[currentIdx];
   document.getElementById('holdings-body').innerHTML = c.holdings.map((h, hi) => {
-    const pct  = ((h.precioActual - h.compra) / h.compra * 100);
+    const pct  = h.compra > 0 ? ((h.precioActual - h.compra) / h.compra * 100) : 0;
     const sign = pct >= 0 ? '+' : '';
     const cls  = pct >= 0 ? 'up' : 'down';
-    const valorPos = (h.qty || 0) * (h.precioActual || 0);
     return `<tr>
       <td><span class="ticker">${h.ticker}</span></td>
       <td><span class="tag ${h.tagClass}">${h.tipo}</span></td>
@@ -790,7 +788,7 @@ function renderHoldings() {
 }
 
 // ═══════════════════════════════════════════════════════
-//  RENDER ALLOC (auto-calculado desde holdings)
+//  RENDER ALLOC
 // ═══════════════════════════════════════════════════════
 const ALLOC_COLORS = {
   'CEDEAR':'#534ab7','Acción':'#1a4a7a','Bono USD':'#0f6e56',
@@ -801,20 +799,24 @@ const ALLOC_COLORS = {
 function renderAlloc() {
   if (currentIdx < 0) return;
   const c = CLIENTES[currentIdx];
-  if (!c.holdings.length) { document.getElementById('alloc-list').innerHTML = '<div style="font-size:11px;color:var(--text-3);">Sin posiciones cargadas</div>'; return; }
-
-  // Agrupar por tipo
+  const el = document.getElementById('alloc-list');
+  if (!c.holdings.length) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--text-3);">Sin posiciones cargadas</div>';
+    return;
+  }
   const totales = {};
   let total = 0;
   c.holdings.forEach(h => {
-    const v = (h.qty||0) * (h.precioActual||0);
-    totales[h.tipo] = (totales[h.tipo]||0) + v;
+    const v = (h.qty || 0) * (h.precioActual || 0);
+    totales[h.tipo] = (totales[h.tipo] || 0) + v;
     total += v;
   });
-  if (total === 0) { document.getElementById('alloc-list').innerHTML = ''; return; }
-
+  if (total === 0) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--text-3);">Sin datos de precio</div>';
+    return;
+  }
   const sorted = Object.entries(totales).sort((a,b) => b[1]-a[1]);
-  document.getElementById('alloc-list').innerHTML = sorted.map(([tipo, val]) => {
+  el.innerHTML = sorted.map(([tipo, val]) => {
     const pct   = Math.round(val / total * 100);
     const color = ALLOC_COLORS[tipo] || '#888';
     return `<div class="alloc-row">
@@ -835,6 +837,7 @@ function closeOnOverlay(e, id) { if (e.target.id === id) closeModal(id); }
 
 // ── Modal cliente ──
 let editingClienteIdx = null;
+const AV_CLASSES = ['av-g','av-b','av-a','av-p','av-r','av-t'];
 
 function openModalCliente() {
   editingClienteIdx = null;
@@ -859,7 +862,7 @@ function editarCliente(e, i) {
   document.getElementById('f-rend').value   = c.rend   || '';
   document.getElementById('f-cer').value    = c.cer    || '';
   document.getElementById('f-total').value  = c.total  || '';
-  document.getElementById('f-desde').value  = (c.rendSub||'').replace('Desde inicio · ','');
+  document.getElementById('f-desde').value  = (c.rendSub || '').replace('Desde inicio · ', '');
   openModal('overlay-cliente');
 }
 
@@ -867,31 +870,35 @@ function guardarCliente() {
   const nombre = document.getElementById('f-nombre').value.trim();
   if (!nombre) { showToast('Ingresá un nombre', 'error'); return; }
 
-  const initials = nombre.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  const avClasses = ['av-g','av-b','av-a','av-p','av-r','av-t'];
-  const desde = document.getElementById('f-desde').value.trim();
+  const initials = nombre.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  const desde    = document.getElementById('f-desde').value.trim();
 
   if (editingClienteIdx !== null) {
     const c = CLIENTES[editingClienteIdx];
-    c.nombre   = nombre;
-    c.tipo     = document.getElementById('f-tipo').value;
-    c.perfil   = document.getElementById('f-perfil').value;
-    c.moneda   = document.getElementById('f-moneda').value;
-    c.rend     = document.getElementById('f-rend').value.trim()  || c.rend;
-    c.cer      = document.getElementById('f-cer').value.trim()   || c.cer;
-    c.total    = document.getElementById('f-total').value.trim() || c.total;
-    c.rendSub  = desde ? `Desde inicio · ${desde}` : c.rendSub;
-    c.avatar   = initials;
+    c.nombre  = nombre;
+    c.tipo    = document.getElementById('f-tipo').value;
+    c.perfil  = document.getElementById('f-perfil').value;
+    c.moneda  = document.getElementById('f-moneda').value;
+    c.rend    = document.getElementById('f-rend').value.trim()  || c.rend;
+    c.cer     = document.getElementById('f-cer').value.trim()   || c.cer;
+    c.total   = document.getElementById('f-total').value.trim() || c.total;
+    c.rendSub = desde ? `Desde inicio · ${desde}` : c.rendSub;
+    c.avatar  = initials;
     showToast('Cliente actualizado');
   } else {
+    // FIX: calcular avClass ANTES de hacer el push
+    const avClass = AV_CLASSES[CLIENTES.length % AV_CLASSES.length];
     CLIENTES.push({
-      id: uid(), nombre, tipo: document.getElementById('f-tipo').value,
-      perfil: document.getElementById('f-perfil').value, moneda: document.getElementById('f-moneda').value,
-      total: document.getElementById('f-total').value.trim() || '—',
-      rend:  document.getElementById('f-rend').value.trim()  || '—',
+      id: uid(), nombre,
+      tipo:    document.getElementById('f-tipo').value,
+      perfil:  document.getElementById('f-perfil').value,
+      moneda:  document.getElementById('f-moneda').value,
+      total:   document.getElementById('f-total').value.trim() || '—',
+      rend:    document.getElementById('f-rend').value.trim()  || '—',
       rendSub: desde ? `Desde inicio · ${desde}` : '',
-      cer:   document.getElementById('f-cer').value.trim()   || '—',
-      avatar: initials, avClass: avClasses[CLIENTES.length % avClasses.length],
+      cer:     document.getElementById('f-cer').value.trim()   || '—',
+      avatar:  initials,
+      avClass,
       holdings: []
     });
     currentIdx = CLIENTES.length - 1;
@@ -914,7 +921,7 @@ function confirmarBorrarCliente(e, i) {
 function borrarCliente(i) {
   const nombre = CLIENTES[i].nombre;
   CLIENTES.splice(i, 1);
-  currentIdx = CLIENTES.length > 0 ? Math.min(currentIdx, CLIENTES.length-1) : -1;
+  currentIdx = CLIENTES.length > 0 ? Math.min(currentIdx, CLIENTES.length - 1) : -1;
   saveData();
   renderSidebar();
   if (currentIdx >= 0) selectClient(currentIdx); else showEmpty();
@@ -928,8 +935,25 @@ function openModalPosicion(hi) {
   editingHoldingIdx = hi;
   const isEdit = hi !== null && hi !== undefined;
   document.getElementById('modal-pos-title').textContent    = isEdit ? 'Editar posición' : 'Nueva posición';
-  document.getElementById('btn-guardar-pos').textContent    = isEdit ? 'Guardar cambios' : 'Agregar posición';
+  document.getElementById('btn-guardar-pos').textContent    = isEdit ? 'Guardar cambios'  : 'Agregar posición';
   document.getElementById('pos-operacion-section').style.display = isEdit ? '' : 'none';
+
+  // FIX: usar referencias directas en lugar de reasignar .onchange (evita listeners acumulados)
+  const tipoSel   = document.getElementById('p-tipo');
+  const accionSel = document.getElementById('p-accion');
+  const qtyOpWrap = document.getElementById('p-qty-op-wrap');
+
+  tipoSel.onchange = function() {
+    const map = {
+      'CEDEAR':'cedears','Acción':'leading-equity','Bono USD':'bonds',
+      'Bono CER':'bonds','LECAP':'short-term-notes','BONCAP':'short-term-notes',
+      'ON':'bonds','FCI':'','Otro':''
+    };
+    document.getElementById('p-endpoint').value = map[this.value] || '';
+  };
+  accionSel.onchange = function() {
+    qtyOpWrap.style.display = this.value === 'vender-todo' ? 'none' : '';
+  };
 
   if (isEdit) {
     const h = CLIENTES[currentIdx].holdings[hi];
@@ -939,50 +963,44 @@ function openModalPosicion(hi) {
     document.getElementById('p-compra').value   = h.compra || '';
     document.getElementById('p-actual').value   = h.precioActual || '';
     document.getElementById('p-endpoint').value = h.endpoint || '';
-    document.getElementById('p-accion').value   = 'comprar';
+    accionSel.value = 'comprar';
     document.getElementById('p-qty-op').value   = '';
+    qtyOpWrap.style.display = '';
   } else {
     ['p-ticker','p-qty','p-compra','p-actual','p-qty-op'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('p-tipo').value     = 'CEDEAR';
+    tipoSel.value   = 'CEDEAR';
     document.getElementById('p-endpoint').value = 'cedears';
-    document.getElementById('p-accion').value   = 'comprar';
+    accionSel.value = 'comprar';
+    qtyOpWrap.style.display = '';
   }
-
-  // Auto-detectar endpoint por tipo
-  document.getElementById('p-tipo').onchange = function() {
-    const map = {'CEDEAR':'cedears','Acción':'leading-equity','Bono USD':'bonds',
-                 'Bono CER':'bonds','LECAP':'short-term-notes','BONCAP':'short-term-notes',
-                 'ON':'bonds','FCI':'','Otro':''};
-    document.getElementById('p-endpoint').value = map[this.value] || '';
-  };
-
-  // Mostrar/ocultar qty-op según acción
-  document.getElementById('p-accion').onchange = function() {
-    document.getElementById('p-qty-op-wrap').style.display = this.value === 'vender-todo' ? 'none' : '';
-  };
 
   openModal('overlay-posicion');
   setTimeout(() => document.getElementById('p-ticker').focus(), 150);
 }
 
 function tipoToTagClass(tipo) {
-  const m = {'CEDEAR':'tag-cedear','Acción':'tag-accion','Bono USD':'tag-bono',
-             'Bono CER':'tag-bono','LECAP':'tag-lecap','BONCAP':'tag-lecap',
-             'ON':'tag-on','FCI':'tag-fci','Otro':'tag-cedear'};
+  const m = {
+    'CEDEAR':'tag-cedear','Acción':'tag-accion','Bono USD':'tag-bono',
+    'Bono CER':'tag-bono','LECAP':'tag-lecap','BONCAP':'tag-lecap',
+    'ON':'tag-on','FCI':'tag-fci','Otro':'tag-cedear'
+  };
   return m[tipo] || 'tag-cedear';
 }
 
 function guardarPosicion() {
-  const ticker  = document.getElementById('p-ticker').value.trim().toUpperCase();
-  const tipo    = document.getElementById('p-tipo').value;
-  const qty     = parseFloat(document.getElementById('p-qty').value);
-  const compra  = parseFloat(document.getElementById('p-compra').value);
-  const actual  = parseFloat(document.getElementById('p-actual').value) || compra;
-  const ep      = document.getElementById('p-endpoint').value;
+  const ticker = document.getElementById('p-ticker').value.trim().toUpperCase();
+  const tipo   = document.getElementById('p-tipo').value;
+  const qty    = parseFloat(document.getElementById('p-qty').value);
+  const compra = parseFloat(document.getElementById('p-compra').value);
+  const actual = parseFloat(document.getElementById('p-actual').value);
+  const ep     = document.getElementById('p-endpoint').value;
 
   if (!ticker) { showToast('Ingresá un ticker', 'error'); return; }
   if (isNaN(qty) || qty <= 0) { showToast('Ingresá una cantidad válida', 'error'); return; }
   if (isNaN(compra) || compra <= 0) { showToast('Ingresá un precio de compra válido', 'error'); return; }
+
+  // Si no ingresó precio actual, usa precio de compra como fallback
+  const precioActual = (!isNaN(actual) && actual > 0) ? actual : compra;
 
   const c = CLIENTES[currentIdx];
   const isEdit = editingHoldingIdx !== null;
@@ -999,33 +1017,32 @@ function guardarPosicion() {
       if (qtyOp <= 0 || qtyOp > h.qty) { showToast('Cantidad a vender inválida', 'error'); return; }
       h.qty -= qtyOp;
       if (h.qty <= 0) { c.holdings.splice(editingHoldingIdx, 1); showToast(`Posición ${h.ticker} cerrada`); }
-      else { h.precioActual = actual; showToast(`${ticker}: vendidas ${qtyOp} unidades`); }
-    } else if (accion === 'comprar') {
-      // Precio promedio ponderado
-      const nuevaQty    = h.qty + (qtyOp > 0 ? qtyOp : qty);
+      else            { h.precioActual = precioActual; showToast(`${ticker}: vendidas ${qtyOp} unidades`); }
+    } else {
+      // FIX: "comprar más" — si ingresó una qty a operar usarla; si no, usar qty del campo principal
       const qtySumar    = qtyOp > 0 ? qtyOp : qty;
-      const precioSumar = parseFloat(document.getElementById('p-compra').value) || h.compra;
-      h.compra      = ((h.compra * h.qty) + (precioSumar * qtySumar)) / nuevaQty;
-      h.qty         = nuevaQty;
-      h.precioActual= actual;
-      h.tipo        = tipo;
-      h.tagClass    = tipoToTagClass(tipo);
-      h.endpoint    = ep;
-      showToast(`${ticker}: posición actualizada`);
+      const precioSumar = compra;
+      const nuevaQty    = h.qty + qtySumar;
+      // Precio medio ponderado
+      h.compra       = ((h.compra * h.qty) + (precioSumar * qtySumar)) / nuevaQty;
+      h.qty          = nuevaQty;
+      h.precioActual = precioActual;
+      h.tipo         = tipo;
+      h.tagClass     = tipoToTagClass(tipo);
+      h.endpoint     = ep;
+      showToast(`${ticker}: posición actualizada (PMC ${fmtP(h.compra, ticker)})`);
     }
   } else {
-    // Nueva posición — si ya existe el ticker, preguntar
     const existing = c.holdings.findIndex(h => h.ticker === ticker);
     if (existing >= 0) {
-      // Suma al promedio
       const h = c.holdings[existing];
       const newQty = h.qty + qty;
-      h.compra   = ((h.compra * h.qty) + (compra * qty)) / newQty;
-      h.qty      = newQty;
-      h.precioActual = actual;
-      showToast(`${ticker}: sumada a posición existente (PMC actualizado)`);
+      h.compra       = ((h.compra * h.qty) + (compra * qty)) / newQty;
+      h.qty          = newQty;
+      h.precioActual = precioActual;
+      showToast(`${ticker}: sumada a posición existente (PMC ${fmtP(h.compra, ticker)})`);
     } else {
-      c.holdings.push({ ticker, tipo, tagClass: tipoToTagClass(tipo), qty, compra, precioActual: actual, endpoint: ep });
+      c.holdings.push({ ticker, tipo, tagClass: tipoToTagClass(tipo), qty, compra, precioActual, endpoint: ep });
       showToast(`${ticker} agregado`);
     }
   }
@@ -1070,12 +1087,17 @@ function importarBackup(event) {
     try {
       const data = JSON.parse(e.target.result);
       if (!Array.isArray(data)) throw new Error('Formato inválido');
-      CLIENTES = data;
+      // FIX: validar que cada elemento tenga holdings, sanear si falta
+      const sanitized = data.map(c => ({
+        ...c,
+        holdings: Array.isArray(c.holdings) ? c.holdings : []
+      }));
+      CLIENTES = sanitized;
       currentIdx = CLIENTES.length > 0 ? 0 : -1;
       saveData();
       renderSidebar();
       if (currentIdx >= 0) selectClient(0); else showEmpty();
-      showToast(`${data.length} cliente${data.length!==1?'s':''} importados`);
+      showToast(`${data.length} cliente${data.length !== 1 ? 's' : ''} importados`);
     } catch(err) {
       showToast('Archivo inválido', 'error');
     }
@@ -1086,46 +1108,58 @@ function importarBackup(event) {
 
 // ═══════════════════════════════════════════════════════
 //  PRECIOS BYMADATA
+//  FIX: proxy solo si fetch directo falla; extractPrice busca
+//       también en campos alternativos que usa BYMA
 // ═══════════════════════════════════════════════════════
 const BYMA_BASE  = 'https://open.bymadata.com.ar/assets/json';
-const CORS_PROXY = 'https://corsproxy.io/?';
+const CORS_PROXY = 'https://corsproxy.io/?url=';
 let epCache = {};
 
 function setBadge(state, text) {
   document.getElementById('api-badge').className   = 'api-badge ' + state;
-  document.getElementById('api-dot').className     = 'api-dot' + (state==='loading'?' spin':'');
+  document.getElementById('api-dot').className     = 'api-dot' + (state === 'loading' ? ' spin' : '');
   document.getElementById('api-label').textContent = text;
 }
 function setSpinning(on) { document.getElementById('btn-refresh').classList.toggle('spinning', on); }
+
+async function tryFetch(url) {
+  try {
+    const r = await fetch(url, {headers:{'Accept':'application/json'}});
+    if (r.ok) return await r.json();
+  } catch {}
+  return null;
+}
 
 async function getEp(ep) {
   if (!ep) return null;
   if (epCache[ep]) return epCache[ep];
   const url = `${BYMA_BASE}/${ep}`;
-  for (const u of [url, CORS_PROXY + encodeURIComponent(url)]) {
-    try {
-      const r = await fetch(u, {headers:{'Accept':'application/json'}});
-      if (!r.ok) continue;
-      const d = await r.json();
-      epCache[ep] = d; return d;
-    } catch {}
-  }
-  return null;
+  // FIX: primero intento directo; si falla, proxy correctamente codificado
+  let data = await tryFetch(url);
+  if (!data) data = await tryFetch(CORS_PROXY + encodeURIComponent(url));
+  if (data) epCache[ep] = data;
+  return data;
 }
 
 function extractPrice(data, ticker) {
   if (!Array.isArray(data)) return null;
-  const item = data.find(d =>
-    (d.symbol?.trim().toUpperCase()             === ticker.toUpperCase()) ||
-    (d.descripcionAbreviada?.trim().toUpperCase()=== ticker.toUpperCase())
-  );
+  const tk = ticker.toUpperCase();
+  // FIX: buscar en todos los campos que usa la API de BYMA
+  const item = data.find(d => {
+    const sym  = (d.symbol                || '').trim().toUpperCase();
+    const abr  = (d.descripcionAbreviada  || '').trim().toUpperCase();
+    const inst = (d.instrumentoAbreviado  || '').trim().toUpperCase();
+    const tck  = (d.ticker               || '').trim().toUpperCase();
+    return sym === tk || abr === tk || inst === tk || tck === tk;
+  });
   if (!item) return null;
-  const p = (item.trade && item.trade > 0) ? item.trade : item.closingPrice;
+  // Preferir último trade; si es 0 o nulo, usar cierre anterior
+  const p = (item.trade > 0) ? item.trade : (item.closingPrice || item.close || item.ultimo);
   return p ? parseFloat(p) : null;
 }
 
 async function fetchPrices() {
-  setBadge('loading','Actualizando…'); setSpinning(true); epCache = {};
+  setBadge('loading', 'Actualizando…'); setSpinning(true); epCache = {};
   if (currentIdx < 0) { setSpinning(false); return; }
   const c     = CLIENTES[currentIdx];
   const cells = document.querySelectorAll('.price-cell[data-ticker]');
@@ -1145,14 +1179,13 @@ async function fetchPrices() {
     if (price !== null) {
       h.precioActual = price;
       cell.textContent = fmtP(price, ticker);
-      // Recalcular P&L en la misma fila
-      const row  = cell.closest('tr');
+      const row   = cell.closest('tr');
       const pnlTd = row?.cells[5];
-      if (pnlTd) {
+      if (pnlTd && h.compra > 0) {
         const pct  = ((price - h.compra) / h.compra * 100);
         const sign = pct >= 0 ? '+' : '';
-        pnlTd.textContent = sign + pct.toFixed(1).replace('.',',') + '%';
-        pnlTd.className   = 'fw6 ' + (pct >= 0 ? 'up' : 'down');
+        pnlTd.textContent    = sign + pct.toFixed(1).replace('.', ',') + '%';
+        pnlTd.className      = 'fw6 ' + (pct >= 0 ? 'up' : 'down');
         pnlTd.style.textAlign = 'right';
       }
       ok++;
@@ -1161,32 +1194,34 @@ async function fetchPrices() {
 
   saveData();
   setSpinning(false);
-  const now = new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+  const now = new Date().toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
   document.getElementById('status-time').textContent = 'Última actualización: ' + now;
-  if      (ok > 0 && fail === 0) setBadge('live', 'BYMA · 20 min delay');
+  if      (ok > 0 && fail === 0) setBadge('live', 'BYMA · live');
   else if (ok > 0)               setBadge('live', `BYMA · ${ok} ok, ${fail} sin dato`);
-  else                           setBadge('error','Sin conexión');
+  else                           setBadge('error', 'Sin conexión BYMA');
   renderAlloc();
 }
 
 // ═══════════════════════════════════════════════════════
 //  PDF
+//  FIX: esperar a que las fuentes carguen antes de renderizar
 // ═══════════════════════════════════════════════════════
-function buildPDF() {
-  const c     = CLIENTES[currentIdx];
+function buildPDF(c) {
   const fecha = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
   const hora  = document.getElementById('status-time').textContent.replace('Última actualización: ','') || '—';
-  const rendColor = c.rend?.startsWith('+') ? '#2a6b1a' : '#8c2020';
-  const cerColor  = c.cer?.startsWith('+')  ? '#2a6b1a' : '#8c2020';
+  const rendColor = c.rend && c.rend.startsWith('+') ? '#2a6b1a' : '#8c2020';
+  const cerColor  = c.cer  && c.cer.startsWith('+')  ? '#2a6b1a' : '#8c2020';
 
-  const TC = {'tag-cedear':['#ebe9fd','#4a42a8'],'tag-bono':['#d9f0e8','#0f6e56'],
-              'tag-lecap':['#faeeda','#854f0b'],'tag-accion':['#dceaf7','#1a4a7a'],
-              'tag-on':['#fce9e9','#8c2020'],'tag-fci':['#e8f5e9','#2e7d32']};
+  const TC = {
+    'tag-cedear':['#ebe9fd','#4a42a8'],'tag-bono':['#d9f0e8','#0f6e56'],
+    'tag-lecap':['#faeeda','#854f0b'],'tag-accion':['#dceaf7','#1a4a7a'],
+    'tag-on':['#fce9e9','#8c2020'],'tag-fci':['#e8f5e9','#2e7d32']
+  };
 
   const posRows = c.holdings.map(h => {
-    const pct   = ((h.precioActual - h.compra) / h.compra * 100);
-    const pColor= pct >= 0 ? '#2a6b1a' : '#8c2020';
-    const [tbg,tcol] = TC[h.tagClass] || ['#eee','#333'];
+    const pct    = h.compra > 0 ? ((h.precioActual - h.compra) / h.compra * 100) : 0;
+    const pColor = pct >= 0 ? '#2a6b1a' : '#8c2020';
+    const [tbg, tcol] = TC[h.tagClass] || ['#eee','#333'];
     return `<tr>
       <td style="padding:7px 8px;border-bottom:1px solid #ede9e0;font-size:11px;font-weight:600;">${h.ticker}</td>
       <td style="padding:7px 8px;border-bottom:1px solid #ede9e0;"><span style="font-size:9px;padding:2px 6px;border-radius:3px;background:${tbg};color:${tcol};font-weight:500;">${h.tipo}</span></td>
@@ -1197,42 +1232,49 @@ function buildPDF() {
     </tr>`;
   }).join('');
 
-  // Alloc para PDF
   const totales = {}; let total = 0;
-  c.holdings.forEach(h => { const v=(h.qty||0)*(h.precioActual||0); totales[h.tipo]=(totales[h.tipo]||0)+v; total+=v; });
-  const allocBars = Object.entries(totales).sort((a,b)=>b[1]-a[1]).map(([tipo,val]) => {
-    const pct = Math.round(val/total*100);
-    const color = ALLOC_COLORS[tipo]||'#888';
-    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;">
-      <span style="width:7px;height:7px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block;"></span>
-      <span style="font-size:11px;color:#333;width:82px;flex-shrink:0;">${tipo}</span>
-      <div style="flex:1;height:5px;background:#ede9e0;border-radius:3px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${color};border-radius:3px;"></div></div>
-      <span style="font-size:11px;color:#888;width:26px;text-align:right;">${pct}%</span>
-    </div>`;
-  }).join('');
+  c.holdings.forEach(h => {
+    const v = (h.qty||0) * (h.precioActual||0);
+    totales[h.tipo] = (totales[h.tipo]||0) + v;
+    total += v;
+  });
+  const allocBars = total > 0
+    ? Object.entries(totales).sort((a,b) => b[1]-a[1]).map(([tipo,val]) => {
+        const pct   = Math.round(val/total*100);
+        const color = ALLOC_COLORS[tipo] || '#888';
+        return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;">
+          <span style="width:7px;height:7px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block;"></span>
+          <span style="font-size:11px;color:#333;width:82px;flex-shrink:0;">${tipo}</span>
+          <div style="flex:1;height:5px;background:#ede9e0;border-radius:3px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${color};border-radius:3px;"></div></div>
+          <span style="font-size:11px;color:#888;width:26px;text-align:right;">${pct}%</span>
+        </div>`;
+      }).join('')
+    : '<div style="font-size:11px;color:#aaa;">Sin datos</div>';
 
   return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
-<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Helvetica Neue',Arial,sans-serif;background:#fff;color:#1a1a1a;width:210mm;}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Jost',Helvetica,Arial,sans-serif;background:#fff;color:#1a1a1a;width:210mm;}</style>
 </head><body>
 <div style="background:#1a3a2a;padding:26px 32px 20px;display:flex;align-items:flex-start;justify-content:space-between;">
   <div>
     <div style="display:flex;align-items:center;gap:11px;margin-bottom:10px;">
       <div style="width:38px;height:38px;background:#b8963e;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;letter-spacing:1px;">FR</div>
-      <div><div style="font-size:16px;font-weight:700;color:#e8d5a3;letter-spacing:0.4px;">FR Asesoría Financiera</div><div style="font-size:9px;color:#7aa87a;margin-top:2px;">Asesor Registrado · CNV</div></div>
+      <div><div style="font-size:16px;font-weight:600;color:#e8d5a3;letter-spacing:0.4px;">FR Asesoría Financiera</div><div style="font-size:9px;color:#7aa87a;margin-top:2px;">Asesor Registrado · CNV</div></div>
     </div>
-    <div style="font-size:9px;color:#6a8e6a;line-height:1.7;">Federico Randazzo &nbsp;·&nbsp; federico@frasesoria.com.ar &nbsp;·&nbsp; +54 9 11 0000-0000<br>www.frasesoria.com.ar</div>
+    <div style="font-size:9px;color:#6a8e6a;line-height:1.7;">Federico Randazzo &nbsp;·&nbsp; federico@frasesoria.com.ar<br>www.frasesoria.com.ar</div>
   </div>
   <div style="text-align:right;"><div style="font-size:10px;color:#7aa87a;margin-bottom:3px;">Informe de cartera individual</div><div style="font-size:10px;color:#5a7a5a;">${fecha}</div><div style="font-size:9px;color:#4a6a4a;margin-top:2px;">Precios al: ${hora}</div></div>
 </div>
 <div style="height:3px;background:linear-gradient(90deg,#b8963e,#d4af6a,#b8963e);"></div>
 <div style="padding:20px 32px 16px;border-bottom:1px solid #ede9e0;display:flex;align-items:center;justify-content:space-between;">
-  <div><div style="font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:#aaa;margin-bottom:4px;">Cliente</div><div style="font-size:20px;font-weight:700;color:#1a1a1a;">${c.nombre}</div><div style="font-size:10px;color:#888;margin-top:3px;">${c.tipo} &nbsp;·&nbsp; Perfil ${c.perfil}</div></div>
-  <div style="text-align:right;"><div style="font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:#aaa;margin-bottom:4px;">Valor de cartera</div><div style="font-size:24px;font-weight:700;color:#1a3a2a;">${c.total||'—'}</div></div>
+  <div><div style="font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:#aaa;margin-bottom:4px;">Cliente</div><div style="font-size:20px;font-weight:600;color:#1a1a1a;">${c.nombre}</div><div style="font-size:10px;color:#888;margin-top:3px;">${c.tipo} &nbsp;·&nbsp; Perfil ${c.perfil}</div></div>
+  <div style="text-align:right;"><div style="font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:#aaa;margin-bottom:4px;">Valor de cartera</div><div style="font-size:24px;font-weight:600;color:#1a3a2a;">${c.total||'—'}</div></div>
 </div>
 <div style="padding:16px 32px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;border-bottom:1px solid #ede9e0;">
-  <div style="background:#f7f5ef;border-radius:8px;padding:14px 16px;border-left:3px solid #b8963e;"><div style="font-size:8px;letter-spacing:0.8px;text-transform:uppercase;color:#999;margin-bottom:6px;">Rendimiento total</div><div style="font-size:22px;font-weight:700;color:${rendColor};">${c.rend||'—'}</div><div style="font-size:9px;color:#aaa;margin-top:3px;">${c.rendSub||''}</div></div>
-  <div style="background:#f7f5ef;border-radius:8px;padding:14px 16px;border-left:3px solid #1a3a2a;"><div style="font-size:8px;letter-spacing:0.8px;text-transform:uppercase;color:#999;margin-bottom:6px;">vs. Inflación (CER)</div><div style="font-size:22px;font-weight:700;color:${cerColor};">${c.cer||'—'}</div><div style="font-size:9px;color:#aaa;margin-top:3px;">Rendimiento real acumulado</div></div>
-  <div style="background:#f7f5ef;border-radius:8px;padding:14px 16px;border-left:3px solid #d4af6a;"><div style="font-size:8px;letter-spacing:0.8px;text-transform:uppercase;color:#999;margin-bottom:6px;">Posiciones activas</div><div style="font-size:22px;font-weight:700;color:#1a1a1a;">${c.holdings.length}</div><div style="font-size:9px;color:#aaa;margin-top:3px;">instrumentos en cartera</div></div>
+  <div style="background:#f7f5ef;border-radius:8px;padding:14px 16px;border-left:3px solid #b8963e;"><div style="font-size:8px;letter-spacing:0.8px;text-transform:uppercase;color:#999;margin-bottom:6px;">Rendimiento total</div><div style="font-size:22px;font-weight:600;color:${rendColor};">${c.rend||'—'}</div><div style="font-size:9px;color:#aaa;margin-top:3px;">${c.rendSub||''}</div></div>
+  <div style="background:#f7f5ef;border-radius:8px;padding:14px 16px;border-left:3px solid #1a3a2a;"><div style="font-size:8px;letter-spacing:0.8px;text-transform:uppercase;color:#999;margin-bottom:6px;">vs. Inflación (CER)</div><div style="font-size:22px;font-weight:600;color:${cerColor};">${c.cer||'—'}</div><div style="font-size:9px;color:#aaa;margin-top:3px;">Rendimiento real acumulado</div></div>
+  <div style="background:#f7f5ef;border-radius:8px;padding:14px 16px;border-left:3px solid #d4af6a;"><div style="font-size:8px;letter-spacing:0.8px;text-transform:uppercase;color:#999;margin-bottom:6px;">Posiciones activas</div><div style="font-size:22px;font-weight:600;color:#1a1a1a;">${c.holdings.length}</div><div style="font-size:9px;color:#aaa;margin-top:3px;">instrumentos en cartera</div></div>
 </div>
 <div style="padding:16px 32px;display:grid;grid-template-columns:1.35fr 1fr;gap:20px;border-bottom:1px solid #ede9e0;">
   <div>
@@ -1259,20 +1301,34 @@ function buildPDF() {
 async function generarPDF() {
   if (currentIdx < 0) { showToast('Seleccioná un cliente primero', 'error'); return; }
   const btn = document.getElementById('btn-pdf');
-  btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite;display:inline-block"></i> Generando…';
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite;display:inline-block"></i> Generando…';
+
   const c   = CLIENTES[currentIdx];
   const div = document.createElement('div');
   div.style.cssText = 'position:fixed;left:-9999px;top:0;width:210mm;background:#fff;';
-  div.innerHTML     = buildPDF();
+  div.innerHTML     = buildPDF(c);
   document.body.appendChild(div);
-  await html2pdf().set({
-    margin:0, filename:`Cartera_${c.nombre.replace(/\s+/g,'_')}_FR.pdf`,
-    image:{type:'jpeg',quality:0.97},
-    html2canvas:{scale:2,useCORS:true,letterRendering:true,backgroundColor:'#ffffff'},
-    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}, pagebreak:{mode:'avoid-all'}
-  }).from(div).save();
+
+  // FIX: esperar a que las fuentes del iframe carguen antes de capturar
+  await new Promise(r => setTimeout(r, 800));
+
+  try {
+    await html2pdf().set({
+      margin: 0,
+      filename: `Cartera_${c.nombre.replace(/\s+/g,'_')}_FR.pdf`,
+      image: {type:'jpeg', quality:0.97},
+      html2canvas: {scale:2, useCORS:true, letterRendering:true, backgroundColor:'#ffffff'},
+      jsPDF: {unit:'mm', format:'a4', orientation:'portrait'},
+      pagebreak: {mode:'avoid-all'}
+    }).from(div).save();
+  } catch(err) {
+    showToast('Error al generar PDF', 'error');
+  }
+
   document.body.removeChild(div);
-  btn.disabled = false; btn.innerHTML = '<i class="ti ti-file-export"></i> Exportar PDF';
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-file-export"></i> Exportar PDF';
 }
 
 // ═══════════════════════════════════════════════════════
