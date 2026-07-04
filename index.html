@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Monitor de Carteras · FR Asesoría Financiera</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231a3a2a'/%3E%3Ctext x='32' y='43' font-family='Georgia,serif' font-size='27' font-weight='700' fill='%23b8963e' text-anchor='middle'%3EFR%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -235,6 +236,12 @@ html, body {
 }
 .btn-add-pos:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-pale); }
 
+.historial-item { display: flex; gap: 8px; align-items: flex-start; font-size: 11px; padding: 7px 0; border-bottom: 1px solid var(--cream-mid); }
+.historial-item:last-child { border-bottom: none; }
+.historial-item i { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.historial-detalle { color: var(--text-1); }
+.historial-fecha { color: var(--text-3); font-size: 10px; margin-top: 1px; }
+
 .statusbar {
   background: #fff; border-top: 1px solid var(--border); padding: 6px 28px;
   display: flex; align-items: center; justify-content: space-between;
@@ -278,7 +285,7 @@ html, body {
 }
 .modal-close:hover { background: #fce9e9; color: var(--down); }
 .modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
-.modal-footer { padding: 14px 24px 20px; display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid var(--border); }
+.modal-footer { padding: 14px 24px 20px; display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid var(--border); flex-wrap: wrap; }
 
 .form-group { display: flex; flex-direction: column; gap: 5px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -292,16 +299,19 @@ html, body {
 .form-input::placeholder { color: var(--text-3); }
 
 .btn-primary {
+  display: flex; align-items: center; gap: 6px;
   padding: 8px 18px; background: var(--green); color: #e8d5a3; border: none; border-radius: 7px;
   font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; transition: opacity 0.15s;
 }
 .btn-primary:hover { opacity: 0.85; }
 .btn-secondary {
+  display: flex; align-items: center; gap: 6px;
   padding: 8px 18px; background: var(--cream-mid); color: var(--text-2); border: 1px solid var(--border); border-radius: 7px;
   font-family: 'Jost', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.15s;
 }
 .btn-secondary:hover { background: var(--border); }
 .btn-danger {
+  display: flex; align-items: center; gap: 6px;
   padding: 8px 18px; background: #fce9e9; color: var(--down); border: 1px solid #f0c0c0; border-radius: 7px;
   font-family: 'Jost', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.15s;
 }
@@ -419,6 +429,10 @@ html, body {
         </div>
       </div>
     </div>
+    <div class="card">
+      <div class="card-title"><div class="card-title-left"><i class="ti ti-history"></i> Historial de movimientos</div></div>
+      <div id="historial-list" style="max-height:230px;overflow-y:auto;"></div>
+    </div>
   </div>
 </main>
 </div>
@@ -472,7 +486,7 @@ html, body {
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Rendimiento total</label>
+          <label class="form-label">Rendimiento (manual, si no hay posiciones)</label>
           <input class="form-input" id="f-rend" placeholder="Ej: +34,2%">
         </div>
         <div class="form-group">
@@ -482,7 +496,7 @@ html, body {
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Valor total de cartera</label>
+          <label class="form-label">Valor cartera (manual, si no hay posiciones)</label>
           <input class="form-input" id="f-total" placeholder="Ej: $47.320.000">
         </div>
         <div class="form-group">
@@ -492,8 +506,8 @@ html, body {
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn-secondary" onclick="closeModal('overlay-cliente')">Cancelar</button>
-      <button class="btn-primary" onclick="guardarCliente()">Guardar cliente</button>
+      <button class="btn-secondary" onclick="closeModal('overlay-cliente')"><i class="ti ti-x"></i> Cancelar</button>
+      <button class="btn-primary" onclick="guardarCliente()"><i class="ti ti-device-floppy"></i> Guardar cliente</button>
     </div>
   </div>
 </div>
@@ -571,15 +585,15 @@ html, body {
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn-secondary" onclick="closeModal('overlay-posicion')">Cancelar</button>
-      <button class="btn-primary" id="btn-guardar-pos" onclick="guardarPosicion()">Guardar posición</button>
+      <button class="btn-secondary" onclick="closeModal('overlay-posicion')"><i class="ti ti-x"></i> Cancelar</button>
+      <button class="btn-primary" id="btn-guardar-pos" onclick="guardarPosicion()"><i class="ti ti-plus"></i> Agregar posición</button>
     </div>
   </div>
 </div>
 
 <!-- MODAL CONFIRMAR -->
 <div class="overlay" id="overlay-confirm" onclick="closeOnOverlay(event,'overlay-confirm')">
-  <div class="modal" style="width:360px;">
+  <div class="modal" style="width:380px;">
     <div class="modal-header">
       <span class="modal-title" id="confirm-title">Confirmar</span>
       <button class="modal-close" onclick="closeModal('overlay-confirm')"><i class="ti ti-x"></i></button>
@@ -588,8 +602,9 @@ html, body {
       <p id="confirm-msg" style="font-size:13px;color:var(--text-2);line-height:1.5;"></p>
     </div>
     <div class="modal-footer">
-      <button class="btn-secondary" onclick="closeModal('overlay-confirm')">Cancelar</button>
-      <button class="btn-danger" id="btn-confirm-ok">Eliminar</button>
+      <button class="btn-secondary" onclick="closeModal('overlay-confirm')"><i class="ti ti-x"></i> Cancelar</button>
+      <button class="btn-secondary" id="btn-confirm-merge" style="display:none;"><i class="ti ti-git-merge"></i> Fusionar</button>
+      <button class="btn-danger" id="btn-confirm-ok"><i class="ti ti-trash"></i> Eliminar</button>
     </div>
   </div>
 </div>
@@ -606,11 +621,11 @@ const CLIENTES_DEFAULT = [
   {
     id:'c1', nombre:'Martín García', tipo:'Persona física', perfil:'Moderado',
     moneda:'ARS', total:'$47.320.000', rend:'+34,2%', rendSub:'Desde inicio · 14 meses',
-    cer:'+12,1%', avatar:'MG', avClass:'av-g',
+    cer:'+12,1%', avatar:'MG', avClass:'av-g', historial:[],
     holdings:[
       {ticker:'AAPL', tipo:'CEDEAR',   tagClass:'tag-cedear', qty:50,   compra:8200,  precioActual:9450,  endpoint:'cedears'},
       {ticker:'AL30', tipo:'Bono USD', tagClass:'tag-bono',   qty:1000, compra:52,    precioActual:61.5,  endpoint:'bonds'},
-      {ticker:'S31E5',tipo:'LECAP',    tagClass:'tag-lecap',  qty:200,  compra:985,   precioActual:1032,  endpoint:'short-term-notes'},
+      {ticker:'S31E5',tipo:'LECAP',    tagClass:'tag-lecap',  qty:200,  compra:985,   precioActual:1032, endpoint:'short-term-notes'},
       {ticker:'MSFT', tipo:'CEDEAR',   tagClass:'tag-cedear', qty:20,   compra:11400, precioActual:10870, endpoint:'cedears'},
       {ticker:'TX26', tipo:'Bono CER', tagClass:'tag-bono',   qty:500,  compra:178,   precioActual:211,   endpoint:'bonds'},
       {ticker:'YPFD', tipo:'Acción',   tagClass:'tag-accion', qty:30,   compra:38200, precioActual:42100, endpoint:'leading-equity'},
@@ -619,7 +634,7 @@ const CLIENTES_DEFAULT = [
   {
     id:'c2', nombre:'Sara López', tipo:'Persona física', perfil:'Conservador',
     moneda:'ARS', total:'$23.180.000', rend:'+18,7%', rendSub:'Desde inicio · 9 meses',
-    cer:'+4,2%', avatar:'SL', avClass:'av-b',
+    cer:'+4,2%', avatar:'SL', avClass:'av-b', historial:[],
     holdings:[
       {ticker:'AL30', tipo:'Bono USD', tagClass:'tag-bono',   qty:800, compra:48,   precioActual:61.5, endpoint:'bonds'},
       {ticker:'TX26', tipo:'Bono CER', tagClass:'tag-bono',   qty:300, compra:155,  precioActual:211,  endpoint:'bonds'},
@@ -630,14 +645,14 @@ const CLIENTES_DEFAULT = [
   {
     id:'c3', nombre:'Techno Insumos SA', tipo:'PyME', perfil:'Agresivo',
     moneda:'ARS', total:'$112.500.000', rend:'+41,3%', rendSub:'Desde inicio · 18 meses',
-    cer:'+19,8%', avatar:'TI', avClass:'av-a',
+    cer:'+19,8%', avatar:'TI', avClass:'av-a', historial:[],
     holdings:[
       {ticker:'AAPL', tipo:'CEDEAR',   tagClass:'tag-cedear', qty:120, compra:7200,  precioActual:9450,  endpoint:'cedears'},
       {ticker:'MSFT', tipo:'CEDEAR',   tagClass:'tag-cedear', qty:60,  compra:10500, precioActual:10870, endpoint:'cedears'},
       {ticker:'YPFD', tipo:'Acción',   tagClass:'tag-accion', qty:80,  compra:32000, precioActual:42100, endpoint:'leading-equity'},
       {ticker:'AL30', tipo:'Bono USD', tagClass:'tag-bono',   qty:2000,compra:45,    precioActual:61.5,  endpoint:'bonds'},
       {ticker:'TX26', tipo:'Bono CER', tagClass:'tag-bono',   qty:1000,compra:142,   precioActual:211,   endpoint:'bonds'},
-      {ticker:'S31E5',tipo:'LECAP',    tagClass:'tag-lecap',  qty:300, compra:970,   precioActual:1032,  endpoint:'short-term-notes'},
+      {ticker:'S31E5',tipo:'LECAP',    tagClass:'tag-lecap',  qty:300, compra:970,   precioActual:1032, endpoint:'short-term-notes'},
       {ticker:'MELI', tipo:'CEDEAR',   tagClass:'tag-cedear', qty:10,  compra:68000, precioActual:74500, endpoint:'cedears'},
       {ticker:'GGAL', tipo:'Acción',   tagClass:'tag-accion', qty:200, compra:1850,  precioActual:2340,  endpoint:'leading-equity'},
     ]
@@ -645,7 +660,7 @@ const CLIENTES_DEFAULT = [
   {
     id:'c4', nombre:'Roberto Bianchi', tipo:'Persona física', perfil:'Conservador',
     moneda:'ARS', total:'$8.750.000', rend:'+9,1%', rendSub:'Desde inicio · 6 meses',
-    cer:'-2,3%', avatar:'RB', avClass:'av-p',
+    cer:'-2,3%', avatar:'RB', avClass:'av-p', historial:[],
     holdings:[
       {ticker:'S31E5',tipo:'LECAP',    tagClass:'tag-lecap', qty:150, compra:975, precioActual:1032, endpoint:'short-term-notes'},
       {ticker:'AL30', tipo:'Bono USD', tagClass:'tag-bono',  qty:400, compra:55,  precioActual:61.5, endpoint:'bonds'},
@@ -667,6 +682,11 @@ function saveData() {
 function uid() { return 'c' + Date.now() + Math.random().toString(36).slice(2,6); }
 
 let CLIENTES = loadData();
+// FIX: migración — asegura que clientes cargados antes de esta versión tengan los campos nuevos
+CLIENTES.forEach(c => {
+  if (!Array.isArray(c.holdings))  c.holdings  = [];
+  if (!Array.isArray(c.historial)) c.historial = [];
+});
 let currentIdx = CLIENTES.length > 0 ? 0 : -1;
 
 // ═══════════════════════════════════════════════════════
@@ -706,6 +726,101 @@ function renderSidebar() {
 }
 
 // ═══════════════════════════════════════════════════════
+//  MÉTRICAS AUTOMÁTICAS (rendimiento / valor de cartera)
+//  FIX: se calculan desde las posiciones reales en vez de
+//       depender únicamente de campos de texto manuales
+// ═══════════════════════════════════════════════════════
+function calcRendimientoHoldings(c) {
+  let invertido = 0, actual = 0;
+  (c.holdings || []).forEach(h => {
+    invertido += (h.compra || 0) * (h.qty || 0);
+    actual    += (h.precioActual || 0) * (h.qty || 0);
+  });
+  if (invertido <= 0) return null;
+  return { pct: (actual - invertido) / invertido * 100, invertido, actual };
+}
+
+function getDisplayTotal(c) {
+  if (c.holdings && c.holdings.length) {
+    const t = c.holdings.reduce((s,h) => s + (h.qty||0) * (h.precioActual||0), 0);
+    return '$' + Math.round(t).toLocaleString('es-AR');
+  }
+  return c.total || '—';
+}
+
+function getDisplayRend(c) {
+  const calc = calcRendimientoHoldings(c);
+  if (calc) {
+    return {
+      text: (calc.pct >= 0 ? '+' : '') + calc.pct.toFixed(1).replace('.', ',') + '%',
+      sub: 'Calculado sobre posiciones actuales',
+      positive: calc.pct >= 0
+    };
+  }
+  return {
+    text: c.rend || '—',
+    sub: c.rendSub || '(manual, sin posiciones cargadas)',
+    positive: (c.rend || '').startsWith('+')
+  };
+}
+
+function renderMetrics() {
+  if (currentIdx < 0) return;
+  const c = CLIENTES[currentIdx];
+
+  document.getElementById('c-total').textContent = getDisplayTotal(c);
+
+  const rendInfo = getDisplayRend(c);
+  const rendEl = document.getElementById('m-rend');
+  rendEl.textContent = rendInfo.text;
+  rendEl.className   = 'metric-value ' + (rendInfo.positive ? 'up' : 'down');
+  document.getElementById('m-rend-sub').textContent = rendInfo.sub;
+
+  const cerEl = document.getElementById('m-cer');
+  cerEl.textContent = c.cer || '—';
+  cerEl.className   = 'metric-value ' + (c.cer && c.cer.startsWith('+') ? 'up' : 'down');
+
+  document.getElementById('m-pos').textContent     = c.holdings.length;
+  document.getElementById('m-pos-sub').textContent = `instrumento${c.holdings.length !== 1 ? 's' : ''} en cartera`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  HISTORIAL DE MOVIMIENTOS
+// ═══════════════════════════════════════════════════════
+function logMovimiento(c, accion, detalle) {
+  if (!Array.isArray(c.historial)) c.historial = [];
+  c.historial.unshift({ fecha: new Date().toISOString(), accion, detalle });
+  if (c.historial.length > 50) c.historial = c.historial.slice(0, 50);
+}
+
+const HIST_ICON  = { 'Alta':'ti-circle-plus', 'Compra':'ti-arrow-up-right', 'Venta':'ti-arrow-down-right', 'Cierre':'ti-square-x', 'Baja':'ti-trash' };
+const HIST_COLOR = { 'Alta':'var(--up)', 'Compra':'var(--up)', 'Venta':'var(--down)', 'Cierre':'var(--down)', 'Baja':'var(--text-3)' };
+
+function renderHistorial() {
+  if (currentIdx < 0) return;
+  const c = CLIENTES[currentIdx];
+  const hist = Array.isArray(c.historial) ? c.historial : [];
+  const list = document.getElementById('historial-list');
+  if (!hist.length) {
+    list.innerHTML = '<div style="font-size:11px;color:var(--text-3);">Sin movimientos registrados todavía</div>';
+    return;
+  }
+  list.innerHTML = hist.map(m => {
+    const d = new Date(m.fecha);
+    const fechaStr = d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'2-digit'}) + ' · ' + d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+    const icon  = HIST_ICON[m.accion]  || 'ti-point';
+    const color = HIST_COLOR[m.accion] || 'var(--text-3)';
+    return `<div class="historial-item">
+      <i class="ti ${icon}" style="color:${color};"></i>
+      <div>
+        <div class="historial-detalle">${m.detalle}</div>
+        <div class="historial-fecha">${fechaStr}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
 //  SELECCIONAR CLIENTE
 // ═══════════════════════════════════════════════════════
 function selectClient(i) {
@@ -714,20 +829,12 @@ function selectClient(i) {
   if (i < 0 || i >= CLIENTES.length) { showEmpty(); return; }
   showClientView();
   const c = CLIENTES[i];
-  document.getElementById('c-name').textContent  = c.nombre;
-  document.getElementById('c-meta').textContent  = `${c.tipo} · Perfil ${c.perfil}`;
-  document.getElementById('c-total').textContent = c.total || '—';
-  const rendEl = document.getElementById('m-rend');
-  rendEl.textContent = c.rend || '—';
-  rendEl.className   = 'metric-value ' + (c.rend && c.rend.startsWith('+') ? 'up' : 'down');
-  document.getElementById('m-rend-sub').textContent = c.rendSub || '';
-  const cerEl = document.getElementById('m-cer');
-  cerEl.textContent = c.cer || '—';
-  cerEl.className   = 'metric-value ' + (c.cer && c.cer.startsWith('+') ? 'up' : 'down');
-  document.getElementById('m-pos').textContent     = c.holdings.length;
-  document.getElementById('m-pos-sub').textContent = `instrumento${c.holdings.length !== 1 ? 's' : ''} en cartera`;
+  document.getElementById('c-name').textContent = c.nombre;
+  document.getElementById('c-meta').textContent = `${c.tipo} · Perfil ${c.perfil}`;
+  renderMetrics();
   renderHoldings();
   renderAlloc();
+  renderHistorial();
 }
 
 function showEmpty() {
@@ -899,7 +1006,8 @@ function guardarCliente() {
       cer:     document.getElementById('f-cer').value.trim()   || '—',
       avatar:  initials,
       avClass,
-      holdings: []
+      holdings: [],
+      historial: []
     });
     currentIdx = CLIENTES.length - 1;
     showToast('Cliente creado');
@@ -915,7 +1023,10 @@ function confirmarBorrarCliente(e, i) {
   e.stopPropagation();
   document.getElementById('confirm-title').textContent = 'Eliminar cliente';
   document.getElementById('confirm-msg').textContent   = `¿Eliminar a "${CLIENTES[i].nombre}" y todas sus posiciones? Esta acción no se puede deshacer.`;
-  document.getElementById('btn-confirm-ok').onclick = () => { borrarCliente(i); closeModal('overlay-confirm'); };
+  const btnOk = document.getElementById('btn-confirm-ok');
+  btnOk.innerHTML = '<i class="ti ti-trash"></i> Eliminar';
+  document.getElementById('btn-confirm-merge').style.display = 'none';
+  btnOk.onclick = () => { borrarCliente(i); closeModal('overlay-confirm'); };
   openModal('overlay-confirm');
 }
 function borrarCliente(i) {
@@ -935,7 +1046,7 @@ function openModalPosicion(hi) {
   editingHoldingIdx = hi;
   const isEdit = hi !== null && hi !== undefined;
   document.getElementById('modal-pos-title').textContent    = isEdit ? 'Editar posición' : 'Nueva posición';
-  document.getElementById('btn-guardar-pos').textContent    = isEdit ? 'Guardar cambios'  : 'Agregar posición';
+  document.getElementById('btn-guardar-pos').innerHTML      = isEdit ? '<i class="ti ti-device-floppy"></i> Guardar cambios' : '<i class="ti ti-plus"></i> Agregar posición';
   document.getElementById('pos-operacion-section').style.display = isEdit ? '' : 'none';
 
   // FIX: usar referencias directas en lugar de reasignar .onchange (evita listeners acumulados)
@@ -1011,11 +1122,13 @@ function guardarPosicion() {
     const qtyOp  = parseFloat(document.getElementById('p-qty-op').value) || 0;
 
     if (accion === 'vender-todo') {
+      logMovimiento(c, 'Cierre', `Cerrada posición completa en ${h.ticker} (${h.qty} u. a ${fmtP(precioActual, h.ticker)})`);
       c.holdings.splice(editingHoldingIdx, 1);
       showToast(`Posición ${h.ticker} cerrada`);
     } else if (accion === 'vender') {
       if (qtyOp <= 0 || qtyOp > h.qty) { showToast('Cantidad a vender inválida', 'error'); return; }
       h.qty -= qtyOp;
+      logMovimiento(c, 'Venta', `Vendidas ${qtyOp} u. de ${ticker} a ${fmtP(precioActual, ticker)}`);
       if (h.qty <= 0) { c.holdings.splice(editingHoldingIdx, 1); showToast(`Posición ${h.ticker} cerrada`); }
       else            { h.precioActual = precioActual; showToast(`${ticker}: vendidas ${qtyOp} unidades`); }
     } else {
@@ -1030,6 +1143,7 @@ function guardarPosicion() {
       h.tipo         = tipo;
       h.tagClass     = tipoToTagClass(tipo);
       h.endpoint     = ep;
+      logMovimiento(c, 'Compra', `Sumadas ${qtySumar} u. de ${ticker} a ${fmtP(precioSumar, ticker)} (nuevo PMC ${fmtP(h.compra, ticker)})`);
       showToast(`${ticker}: posición actualizada (PMC ${fmtP(h.compra, ticker)})`);
     }
   } else {
@@ -1040,9 +1154,11 @@ function guardarPosicion() {
       h.compra       = ((h.compra * h.qty) + (compra * qty)) / newQty;
       h.qty          = newQty;
       h.precioActual = precioActual;
+      logMovimiento(c, 'Compra', `Sumadas ${qty} u. de ${ticker} a ${fmtP(compra, ticker)} (nuevo PMC ${fmtP(h.compra, ticker)})`);
       showToast(`${ticker}: sumada a posición existente (PMC ${fmtP(h.compra, ticker)})`);
     } else {
       c.holdings.push({ ticker, tipo, tagClass: tipoToTagClass(tipo), qty, compra, precioActual, endpoint: ep });
+      logMovimiento(c, 'Alta', `Nueva posición: ${qty} u. de ${ticker} a ${fmtP(compra, ticker)}`);
       showToast(`${ticker} agregado`);
     }
   }
@@ -1051,6 +1167,8 @@ function guardarPosicion() {
   closeModal('overlay-posicion');
   renderHoldings();
   renderAlloc();
+  renderMetrics();
+  renderHistorial();
 }
 
 // ── Borrar posición ──
@@ -1058,9 +1176,14 @@ function confirmarBorrarPosicion(hi) {
   const h = CLIENTES[currentIdx].holdings[hi];
   document.getElementById('confirm-title').textContent = 'Eliminar posición';
   document.getElementById('confirm-msg').textContent   = `¿Eliminar la posición en ${h.ticker}?`;
-  document.getElementById('btn-confirm-ok').onclick = () => {
-    CLIENTES[currentIdx].holdings.splice(hi, 1);
-    saveData(); renderHoldings(); renderAlloc();
+  const btnOk = document.getElementById('btn-confirm-ok');
+  btnOk.innerHTML = '<i class="ti ti-trash"></i> Eliminar';
+  document.getElementById('btn-confirm-merge').style.display = 'none';
+  btnOk.onclick = () => {
+    const c = CLIENTES[currentIdx];
+    logMovimiento(c, 'Baja', `Eliminada posición en ${h.ticker} (${h.qty} u.)`);
+    c.holdings.splice(hi, 1);
+    saveData(); renderHoldings(); renderAlloc(); renderMetrics(); renderHistorial();
     closeModal('overlay-confirm');
     showToast(`${h.ticker} eliminado`);
   };
@@ -1079,6 +1202,8 @@ function exportarBackup() {
   showToast('Backup descargado');
 }
 
+// FIX: el import ahora pregunta si fusionar con la lista actual o reemplazarla por completo,
+// en vez de pisar silenciosamente todos los clientes cargados.
 function importarBackup(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -1087,23 +1212,47 @@ function importarBackup(event) {
     try {
       const data = JSON.parse(e.target.result);
       if (!Array.isArray(data)) throw new Error('Formato inválido');
-      // FIX: validar que cada elemento tenga holdings, sanear si falta
       const sanitized = data.map(c => ({
         ...c,
-        holdings: Array.isArray(c.holdings) ? c.holdings : []
+        holdings:  Array.isArray(c.holdings)  ? c.holdings  : [],
+        historial: Array.isArray(c.historial) ? c.historial : []
       }));
-      CLIENTES = sanitized;
-      currentIdx = CLIENTES.length > 0 ? 0 : -1;
-      saveData();
-      renderSidebar();
-      if (currentIdx >= 0) selectClient(0); else showEmpty();
-      showToast(`${data.length} cliente${data.length !== 1 ? 's' : ''} importados`);
+
+      document.getElementById('confirm-title').textContent = 'Importar backup';
+      document.getElementById('confirm-msg').textContent   = `El archivo tiene ${sanitized.length} cliente${sanitized.length!==1?'s':''}. ¿Fusionar con tu lista actual (${CLIENTES.length} clientes) o reemplazarla por completo?`;
+
+      const btnOk    = document.getElementById('btn-confirm-ok');
+      const btnMerge = document.getElementById('btn-confirm-merge');
+      btnOk.innerHTML = '<i class="ti ti-refresh"></i> Reemplazar todo';
+      btnMerge.style.display = '';
+      btnOk.onclick    = () => { aplicarImport(sanitized, 'reemplazar'); closeModal('overlay-confirm'); };
+      btnMerge.onclick = () => { aplicarImport(sanitized, 'fusionar');   closeModal('overlay-confirm'); };
+      openModal('overlay-confirm');
     } catch(err) {
       showToast('Archivo inválido', 'error');
     }
   };
   reader.readAsText(file);
   event.target.value = '';
+}
+
+function aplicarImport(sanitized, modo) {
+  if (modo === 'reemplazar') {
+    CLIENTES = sanitized;
+  } else {
+    // Fusionar: se agregan como clientes nuevos con id propio, sin tocar los existentes
+    sanitized.forEach(c => { c.id = uid(); CLIENTES.push(c); });
+  }
+  currentIdx = CLIENTES.length > 0 ? 0 : -1;
+  saveData();
+  renderSidebar();
+  if (currentIdx >= 0) selectClient(currentIdx); else showEmpty();
+  showToast(modo === 'reemplazar'
+    ? `${sanitized.length} cliente(s) importados (reemplazo total)`
+    : `${sanitized.length} cliente(s) fusionados con tu lista`);
+  // Restaurar el botón de confirmación a su estado por defecto para otros usos del modal
+  document.getElementById('btn-confirm-merge').style.display = 'none';
+  document.getElementById('btn-confirm-ok').innerHTML = '<i class="ti ti-trash"></i> Eliminar';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1200,16 +1349,22 @@ async function fetchPrices() {
   else if (ok > 0)               setBadge('live', `BYMA · ${ok} ok, ${fail} sin dato`);
   else                           setBadge('error', 'Sin conexión BYMA');
   renderAlloc();
+  renderMetrics();
 }
 
 // ═══════════════════════════════════════════════════════
 //  PDF
 //  FIX: esperar a que las fuentes carguen antes de renderizar
+//  FIX: usa el rendimiento y valor de cartera calculados
+//       automáticamente, igual que la vista en pantalla
 // ═══════════════════════════════════════════════════════
 function buildPDF(c) {
   const fecha = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
   const hora  = document.getElementById('status-time').textContent.replace('Última actualización: ','') || '—';
-  const rendColor = c.rend && c.rend.startsWith('+') ? '#2a6b1a' : '#8c2020';
+
+  const rendInfo  = getDisplayRend(c);
+  const totalDisp = getDisplayTotal(c);
+  const rendColor = rendInfo.positive ? '#2a6b1a' : '#8c2020';
   const cerColor  = c.cer  && c.cer.startsWith('+')  ? '#2a6b1a' : '#8c2020';
 
   const TC = {
@@ -1269,10 +1424,10 @@ function buildPDF(c) {
 <div style="height:3px;background:linear-gradient(90deg,#b8963e,#d4af6a,#b8963e);"></div>
 <div style="padding:20px 32px 16px;border-bottom:1px solid #ede9e0;display:flex;align-items:center;justify-content:space-between;">
   <div><div style="font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:#aaa;margin-bottom:4px;">Cliente</div><div style="font-size:20px;font-weight:600;color:#1a1a1a;">${c.nombre}</div><div style="font-size:10px;color:#888;margin-top:3px;">${c.tipo} &nbsp;·&nbsp; Perfil ${c.perfil}</div></div>
-  <div style="text-align:right;"><div style="font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:#aaa;margin-bottom:4px;">Valor de cartera</div><div style="font-size:24px;font-weight:600;color:#1a3a2a;">${c.total||'—'}</div></div>
+  <div style="text-align:right;"><div style="font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:#aaa;margin-bottom:4px;">Valor de cartera</div><div style="font-size:24px;font-weight:600;color:#1a3a2a;">${totalDisp}</div></div>
 </div>
 <div style="padding:16px 32px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;border-bottom:1px solid #ede9e0;">
-  <div style="background:#f7f5ef;border-radius:8px;padding:14px 16px;border-left:3px solid #b8963e;"><div style="font-size:8px;letter-spacing:0.8px;text-transform:uppercase;color:#999;margin-bottom:6px;">Rendimiento total</div><div style="font-size:22px;font-weight:600;color:${rendColor};">${c.rend||'—'}</div><div style="font-size:9px;color:#aaa;margin-top:3px;">${c.rendSub||''}</div></div>
+  <div style="background:#f7f5ef;border-radius:8px;padding:14px 16px;border-left:3px solid #b8963e;"><div style="font-size:8px;letter-spacing:0.8px;text-transform:uppercase;color:#999;margin-bottom:6px;">Rendimiento total</div><div style="font-size:22px;font-weight:600;color:${rendColor};">${rendInfo.text}</div><div style="font-size:9px;color:#aaa;margin-top:3px;">${rendInfo.sub}</div></div>
   <div style="background:#f7f5ef;border-radius:8px;padding:14px 16px;border-left:3px solid #1a3a2a;"><div style="font-size:8px;letter-spacing:0.8px;text-transform:uppercase;color:#999;margin-bottom:6px;">vs. Inflación (CER)</div><div style="font-size:22px;font-weight:600;color:${cerColor};">${c.cer||'—'}</div><div style="font-size:9px;color:#aaa;margin-top:3px;">Rendimiento real acumulado</div></div>
   <div style="background:#f7f5ef;border-radius:8px;padding:14px 16px;border-left:3px solid #d4af6a;"><div style="font-size:8px;letter-spacing:0.8px;text-transform:uppercase;color:#999;margin-bottom:6px;">Posiciones activas</div><div style="font-size:22px;font-weight:600;color:#1a1a1a;">${c.holdings.length}</div><div style="font-size:9px;color:#aaa;margin-top:3px;">instrumentos en cartera</div></div>
 </div>
