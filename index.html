@@ -346,6 +346,8 @@ html, body {
   <div class="tn-right">
     <span class="api-badge" id="api-badge"><span class="api-dot" id="api-dot"></span><span id="api-label">Sin datos</span></span>
     <button class="btn-icon" id="btn-refresh" title="Actualizar precios" onclick="fetchPrices()"><i class="ti ti-refresh"></i></button>
+    <button class="btn-outline" id="btn-fx" title="Tipo de cambio usado para dolarizar" onclick="openModalFX()"><i class="ti ti-currency-dollar"></i> <span id="fx-label">USD —</span></button>
+    <button class="btn-icon" id="btn-fx-refresh" title="Buscar cotización MEP" onclick="fetchFX()"><i class="ti ti-refresh"></i></button>
     <button class="btn-outline" onclick="exportarBackup()" title="Guardar backup JSON"><i class="ti ti-download"></i> Backup</button>
     <label class="btn-outline" title="Importar backup JSON" style="cursor:pointer">
       <i class="ti ti-upload"></i> Importar
@@ -542,18 +544,11 @@ html, body {
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Cantidad (unidades) *</label>
-          <input class="form-input" id="p-qty" type="number" min="0" placeholder="Ej: 100">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Precio de compra *</label>
-          <input class="form-input" id="p-compra" type="number" min="0" step="0.01" placeholder="Ej: 8200">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Precio actual (manual)</label>
-          <input class="form-input" id="p-actual" type="number" min="0" step="0.01" placeholder="Se actualiza desde BYMA">
+          <label class="form-label">Moneda del precio ingresado</label>
+          <select class="form-select" id="p-moneda-origen">
+            <option value="ARS">Pesos (ARS) — se dolariza automático</option>
+            <option value="USD">Dólares (USD) — ya está en dólares</option>
+          </select>
         </div>
         <div class="form-group">
           <label class="form-label">Endpoint BYMA</label>
@@ -565,6 +560,23 @@ html, body {
             <option value="">— Manual (sin precio BYMA)</option>
           </select>
         </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Cantidad (unidades) *</label>
+          <input class="form-input" id="p-qty" type="number" min="0" placeholder="Ej: 100">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Precio de compra * (en la moneda de arriba)</label>
+          <input class="form-input" id="p-compra" type="number" min="0" step="0.01" placeholder="Ej: 8200">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Precio actual (manual, en la moneda de arriba)</label>
+          <input class="form-input" id="p-actual" type="number" min="0" step="0.01" placeholder="Se actualiza desde BYMA si aplica">
+        </div>
+        <div class="form-group"></div>
       </div>
       <div id="pos-operacion-section" style="display:none;">
         <div class="modal-section-title">Operación sobre posición existente</div>
@@ -587,6 +599,29 @@ html, body {
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeModal('overlay-posicion')"><i class="ti ti-x"></i> Cancelar</button>
       <button class="btn-primary" id="btn-guardar-pos" onclick="guardarPosicion()"><i class="ti ti-plus"></i> Agregar posición</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TIPO DE CAMBIO -->
+<div class="overlay" id="overlay-fx" onclick="closeOnOverlay(event,'overlay-fx')">
+  <div class="modal" style="width:360px;">
+    <div class="modal-header">
+      <span class="modal-title">Tipo de cambio</span>
+      <button class="modal-close" onclick="closeModal('overlay-fx')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Cotización USD (MEP / CCL) *</label>
+        <input class="form-input" id="fx-input" type="number" min="0" step="0.01" placeholder="Ej: 1523.66">
+      </div>
+      <div style="font-size:11px;color:var(--text-3);line-height:1.5;">
+        Toda la página se muestra en dólares. Los activos cargados en pesos se dividen por esta cotización; los que ya cargaste directamente en dólares no se tocan.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('overlay-fx')"><i class="ti ti-x"></i> Cancelar</button>
+      <button class="btn-primary" onclick="guardarFX()"><i class="ti ti-device-floppy"></i> Guardar</button>
     </div>
   </div>
 </div>
@@ -733,8 +768,10 @@ function renderSidebar() {
 function calcRendimientoHoldings(c) {
   let invertido = 0, actual = 0;
   (c.holdings || []).forEach(h => {
-    invertido += (h.compra || 0) * (h.qty || 0);
-    actual    += (h.precioActual || 0) * (h.qty || 0);
+    const compraUSD = toUSD(h.compra, h.monedaOrigen) || 0;
+    const actualUSD  = toUSD(h.precioActual, h.monedaOrigen) || 0;
+    invertido += compraUSD * (h.qty || 0);
+    actual    += actualUSD * (h.qty || 0);
   });
   if (invertido <= 0) return null;
   return { pct: (actual - invertido) / invertido * 100, invertido, actual };
@@ -742,8 +779,11 @@ function calcRendimientoHoldings(c) {
 
 function getDisplayTotal(c) {
   if (c.holdings && c.holdings.length) {
-    const t = c.holdings.reduce((s,h) => s + (h.qty||0) * (h.precioActual||0), 0);
-    return '$' + Math.round(t).toLocaleString('es-AR');
+    const tUSD = c.holdings.reduce((s,h) => {
+      const usd = toUSD(h.precioActual, h.monedaOrigen) || 0;
+      return s + (h.qty||0) * usd;
+    }, 0);
+    return 'US$ ' + tUSD.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
   }
   return c.total || '—';
 }
@@ -847,24 +887,76 @@ function showClientView() {
 }
 
 // ═══════════════════════════════════════════════════════
-//  FORMATEAR PRECIO
-//  Bonos en centavos de peso: AL29/30/35/38, AE38, GD29/30/35/38, DICP, CUAP, TX26, TX28
-//  LECAPs y BONCAP cotizan en pesos enteros (no centavos)
+//  TIPO DE CAMBIO / DOLARIZACIÓN
+//  Toda la página se muestra en USD. Los precios cargados como
+//  "ARS" se dividen por la cotización (MEP/CCL); los cargados
+//  directamente como "USD" (ej. una ON en dólares) no se tocan.
 // ═══════════════════════════════════════════════════════
-const TICKERS_CENTAVOS = new Set([
-  'AL29','AL30','AL35','AL38',
-  'AE38',
-  'GD29','GD30','GD35','GD38',
-  'DICP','CUAP',
-  'TX26','TX28','TX30'
-]);
+const FX_KEY = 'frasesoriaFX_v1';
 
-function fmtP(price, ticker) {
-  if (price === null || price === undefined || isNaN(price)) return '—';
-  const cents = TICKERS_CENTAVOS.has((ticker || '').toUpperCase());
-  return cents
-    ? '$' + Number(price).toLocaleString('es-AR', {minimumFractionDigits:1, maximumFractionDigits:2})
-    : '$' + Math.round(price).toLocaleString('es-AR');
+function loadFX() {
+  try {
+    const raw = localStorage.getItem(FX_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return { rate: 1500, fuente: 'manual', fecha: null };
+}
+function saveFX() { try { localStorage.setItem(FX_KEY, JSON.stringify(FX)); } catch(e) {} }
+let FX = loadFX();
+
+function renderFXBadge() {
+  document.getElementById('fx-label').textContent = 'USD $' + Number(FX.rate).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function openModalFX() {
+  document.getElementById('fx-input').value = FX.rate;
+  openModal('overlay-fx');
+}
+function guardarFX() {
+  const v = parseFloat(document.getElementById('fx-input').value);
+  if (isNaN(v) || v <= 0) { showToast('Ingresá una cotización válida', 'error'); return; }
+  FX = { rate: v, fuente: 'manual', fecha: new Date().toISOString() };
+  saveFX();
+  renderFXBadge();
+  closeModal('overlay-fx');
+  refreshAllUSD();
+  showToast('Tipo de cambio actualizado');
+}
+
+async function fetchFX() {
+  const btn = document.getElementById('btn-fx-refresh');
+  btn.classList.add('spinning');
+  try {
+    const r = await fetch('https://dolarapi.com/v1/dolares/mep');
+    if (!r.ok) throw new Error('bad response');
+    const d = await r.json();
+    if (!d || !d.venta) throw new Error('sin dato');
+    FX = { rate: parseFloat(d.venta), fuente: 'MEP automático', fecha: new Date().toISOString() };
+    saveFX();
+    renderFXBadge();
+    refreshAllUSD();
+    showToast('Cotización MEP actualizada: $' + Number(FX.rate).toLocaleString('es-AR'));
+  } catch(e) {
+    showToast('No se pudo obtener el MEP automático — ingresalo manualmente', 'error');
+  }
+  btn.classList.remove('spinning');
+}
+
+function refreshAllUSD() {
+  if (currentIdx >= 0) { renderHoldings(); renderMetrics(); }
+}
+
+// Convierte un valor a USD según su moneda de origen ('ARS' por defecto, o 'USD' si ya está en dólares)
+function toUSD(valor, monedaOrigen) {
+  if (valor === null || valor === undefined || isNaN(valor)) return null;
+  if (monedaOrigen === 'USD') return valor;
+  return valor / (FX.rate || 1);
+}
+
+function fmtUSD(valor, monedaOrigen) {
+  const usd = toUSD(valor, monedaOrigen);
+  if (usd === null) return '—';
+  return 'US$ ' + usd.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
 
 // ═══════════════════════════════════════════════════════
@@ -881,8 +973,8 @@ function renderHoldings() {
       <td><span class="ticker">${h.ticker}</span></td>
       <td><span class="tag ${h.tagClass}">${h.tipo}</span></td>
       <td style="text-align:right;color:var(--text-3);">${(h.qty||0).toLocaleString('es-AR')}</td>
-      <td style="text-align:right;color:var(--text-3);">${fmtP(h.compra,h.ticker)}</td>
-      <td style="text-align:right;" class="price-cell fw6" data-ticker="${h.ticker}" data-hi="${hi}">${fmtP(h.precioActual,h.ticker)}</td>
+      <td style="text-align:right;color:var(--text-3);">${fmtUSD(h.compra,h.monedaOrigen)}</td>
+      <td style="text-align:right;" class="price-cell fw6" data-ticker="${h.ticker}" data-hi="${hi}" data-moneda="${h.monedaOrigen||'ARS'}">${fmtUSD(h.precioActual,h.monedaOrigen)}</td>
       <td style="text-align:right;" class="fw6 ${cls}">${sign}${pct.toFixed(1).replace('.',',')}%</td>
       <td>
         <div class="row-actions">
@@ -1068,12 +1160,13 @@ function openModalPosicion(hi) {
 
   if (isEdit) {
     const h = CLIENTES[currentIdx].holdings[hi];
-    document.getElementById('p-ticker').value   = h.ticker;
-    document.getElementById('p-tipo').value     = h.tipo;
-    document.getElementById('p-qty').value      = h.qty || '';
-    document.getElementById('p-compra').value   = h.compra || '';
-    document.getElementById('p-actual').value   = h.precioActual || '';
-    document.getElementById('p-endpoint').value = h.endpoint || '';
+    document.getElementById('p-ticker').value        = h.ticker;
+    document.getElementById('p-tipo').value          = h.tipo;
+    document.getElementById('p-qty').value           = h.qty || '';
+    document.getElementById('p-compra').value        = h.compra || '';
+    document.getElementById('p-actual').value        = h.precioActual || '';
+    document.getElementById('p-endpoint').value      = h.endpoint || '';
+    document.getElementById('p-moneda-origen').value = h.monedaOrigen || 'ARS';
     accionSel.value = 'comprar';
     document.getElementById('p-qty-op').value   = '';
     qtyOpWrap.style.display = '';
@@ -1081,6 +1174,7 @@ function openModalPosicion(hi) {
     ['p-ticker','p-qty','p-compra','p-actual','p-qty-op'].forEach(id => document.getElementById(id).value = '');
     tipoSel.value   = 'CEDEAR';
     document.getElementById('p-endpoint').value = 'cedears';
+    document.getElementById('p-moneda-origen').value = 'ARS';
     accionSel.value = 'comprar';
     qtyOpWrap.style.display = '';
   }
@@ -1099,12 +1193,13 @@ function tipoToTagClass(tipo) {
 }
 
 function guardarPosicion() {
-  const ticker = document.getElementById('p-ticker').value.trim().toUpperCase();
-  const tipo   = document.getElementById('p-tipo').value;
-  const qty    = parseFloat(document.getElementById('p-qty').value);
-  const compra = parseFloat(document.getElementById('p-compra').value);
-  const actual = parseFloat(document.getElementById('p-actual').value);
-  const ep     = document.getElementById('p-endpoint').value;
+  const ticker       = document.getElementById('p-ticker').value.trim().toUpperCase();
+  const tipo         = document.getElementById('p-tipo').value;
+  const qty          = parseFloat(document.getElementById('p-qty').value);
+  const compra       = parseFloat(document.getElementById('p-compra').value);
+  const actual       = parseFloat(document.getElementById('p-actual').value);
+  const ep           = document.getElementById('p-endpoint').value;
+  const monedaOrigen = document.getElementById('p-moneda-origen').value;
 
   if (!ticker) { showToast('Ingresá un ticker', 'error'); return; }
   if (isNaN(qty) || qty <= 0) { showToast('Ingresá una cantidad válida', 'error'); return; }
@@ -1122,13 +1217,13 @@ function guardarPosicion() {
     const qtyOp  = parseFloat(document.getElementById('p-qty-op').value) || 0;
 
     if (accion === 'vender-todo') {
-      logMovimiento(c, 'Cierre', `Cerrada posición completa en ${h.ticker} (${h.qty} u. a ${fmtP(precioActual, h.ticker)})`);
+      logMovimiento(c, 'Cierre', `Cerrada posición completa en ${h.ticker} (${h.qty} u. a ${fmtUSD(precioActual, h.monedaOrigen)})`);
       c.holdings.splice(editingHoldingIdx, 1);
       showToast(`Posición ${h.ticker} cerrada`);
     } else if (accion === 'vender') {
       if (qtyOp <= 0 || qtyOp > h.qty) { showToast('Cantidad a vender inválida', 'error'); return; }
       h.qty -= qtyOp;
-      logMovimiento(c, 'Venta', `Vendidas ${qtyOp} u. de ${ticker} a ${fmtP(precioActual, ticker)}`);
+      logMovimiento(c, 'Venta', `Vendidas ${qtyOp} u. de ${ticker} a ${fmtUSD(precioActual, h.monedaOrigen)}`);
       if (h.qty <= 0) { c.holdings.splice(editingHoldingIdx, 1); showToast(`Posición ${h.ticker} cerrada`); }
       else            { h.precioActual = precioActual; showToast(`${ticker}: vendidas ${qtyOp} unidades`); }
     } else {
@@ -1137,14 +1232,15 @@ function guardarPosicion() {
       const precioSumar = compra;
       const nuevaQty    = h.qty + qtySumar;
       // Precio medio ponderado
-      h.compra       = ((h.compra * h.qty) + (precioSumar * qtySumar)) / nuevaQty;
-      h.qty          = nuevaQty;
-      h.precioActual = precioActual;
-      h.tipo         = tipo;
-      h.tagClass     = tipoToTagClass(tipo);
-      h.endpoint     = ep;
-      logMovimiento(c, 'Compra', `Sumadas ${qtySumar} u. de ${ticker} a ${fmtP(precioSumar, ticker)} (nuevo PMC ${fmtP(h.compra, ticker)})`);
-      showToast(`${ticker}: posición actualizada (PMC ${fmtP(h.compra, ticker)})`);
+      h.compra        = ((h.compra * h.qty) + (precioSumar * qtySumar)) / nuevaQty;
+      h.qty           = nuevaQty;
+      h.precioActual  = precioActual;
+      h.tipo          = tipo;
+      h.tagClass      = tipoToTagClass(tipo);
+      h.endpoint      = ep;
+      h.monedaOrigen  = monedaOrigen;
+      logMovimiento(c, 'Compra', `Sumadas ${qtySumar} u. de ${ticker} a ${fmtUSD(precioSumar, monedaOrigen)} (nuevo PMC ${fmtUSD(h.compra, monedaOrigen)})`);
+      showToast(`${ticker}: posición actualizada (PMC ${fmtUSD(h.compra, monedaOrigen)})`);
     }
   } else {
     const existing = c.holdings.findIndex(h => h.ticker === ticker);
@@ -1154,11 +1250,11 @@ function guardarPosicion() {
       h.compra       = ((h.compra * h.qty) + (compra * qty)) / newQty;
       h.qty          = newQty;
       h.precioActual = precioActual;
-      logMovimiento(c, 'Compra', `Sumadas ${qty} u. de ${ticker} a ${fmtP(compra, ticker)} (nuevo PMC ${fmtP(h.compra, ticker)})`);
-      showToast(`${ticker}: sumada a posición existente (PMC ${fmtP(h.compra, ticker)})`);
+      logMovimiento(c, 'Compra', `Sumadas ${qty} u. de ${ticker} a ${fmtUSD(compra, monedaOrigen)} (nuevo PMC ${fmtUSD(h.compra, h.monedaOrigen)})`);
+      showToast(`${ticker}: sumada a posición existente (PMC ${fmtUSD(h.compra, h.monedaOrigen)})`);
     } else {
-      c.holdings.push({ ticker, tipo, tagClass: tipoToTagClass(tipo), qty, compra, precioActual, endpoint: ep });
-      logMovimiento(c, 'Alta', `Nueva posición: ${qty} u. de ${ticker} a ${fmtP(compra, ticker)}`);
+      c.holdings.push({ ticker, tipo, tagClass: tipoToTagClass(tipo), qty, compra, precioActual, endpoint: ep, monedaOrigen });
+      logMovimiento(c, 'Alta', `Nueva posición: ${qty} u. de ${ticker} a ${fmtUSD(compra, monedaOrigen)}`);
       showToast(`${ticker} agregado`);
     }
   }
@@ -1327,7 +1423,7 @@ async function fetchPrices() {
 
     if (price !== null) {
       h.precioActual = price;
-      cell.textContent = fmtP(price, ticker);
+      cell.textContent = fmtUSD(price, h.monedaOrigen);
       const row   = cell.closest('tr');
       const pnlTd = row?.cells[5];
       if (pnlTd && h.compra > 0) {
@@ -1381,8 +1477,8 @@ function buildPDF(c) {
       <td style="padding:7px 8px;border-bottom:1px solid #ede9e0;font-size:11px;font-weight:600;">${h.ticker}</td>
       <td style="padding:7px 8px;border-bottom:1px solid #ede9e0;"><span style="font-size:9px;padding:2px 6px;border-radius:3px;background:${tbg};color:${tcol};font-weight:500;">${h.tipo}</span></td>
       <td style="padding:7px 8px;border-bottom:1px solid #ede9e0;text-align:right;font-size:11px;color:#777;">${(h.qty||0).toLocaleString('es-AR')}</td>
-      <td style="padding:7px 8px;border-bottom:1px solid #ede9e0;text-align:right;font-size:11px;color:#777;">${fmtP(h.compra,h.ticker)}</td>
-      <td style="padding:7px 8px;border-bottom:1px solid #ede9e0;text-align:right;font-size:11px;font-weight:600;">${fmtP(h.precioActual,h.ticker)}</td>
+      <td style="padding:7px 8px;border-bottom:1px solid #ede9e0;text-align:right;font-size:11px;color:#777;">${fmtUSD(h.compra,h.monedaOrigen)}</td>
+      <td style="padding:7px 8px;border-bottom:1px solid #ede9e0;text-align:right;font-size:11px;font-weight:600;">${fmtUSD(h.precioActual,h.monedaOrigen)}</td>
       <td style="padding:7px 8px;border-bottom:1px solid #ede9e0;text-align:right;font-size:11px;font-weight:700;color:${pColor};">${pct>=0?'+':''}${pct.toFixed(1).replace('.',',')}%</td>
     </tr>`;
   }).join('');
@@ -1490,8 +1586,10 @@ async function generarPDF() {
 //  INIT
 // ═══════════════════════════════════════════════════════
 renderSidebar();
+renderFXBadge();
 if (currentIdx >= 0) selectClient(currentIdx); else showEmpty();
 fetchPrices();
+fetchFX();
 </script>
 </body>
 </html>
